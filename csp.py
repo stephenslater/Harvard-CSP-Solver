@@ -155,30 +155,30 @@ class CSP_Solver(object):
 	# The 8 main variables should be the semesters, and each Semester object has n classes
 	def solve(csp):
 		def rec_backtrack(assignmet, csp):
-		if is_complete(assignment):
-			solutions.append(assignment)
-		else:
-			var = get_unassigned_var(variables)
-		
+			if is_complete(assignment):
+				solutions.append(assignment)
+			else:
+				var = get_unassigned_var(variables)
+			
 
 
-		# Complete pseudocode from lecture slide for basic backtracking algorithm
+			# Complete pseudocode from lecture slide for basic backtracking algorithm
 
 
 
 
 
-		solutions = []
+			solutions = []
 
-		# Begin recursive calls to DFS over possible assignments
-		rec_backtrack({}, csp)
+			# Begin recursive calls to DFS over possible assignments
+			rec_backtrack({}, csp)
 
-		# After exhausting all possibile assignments
-		if len(solutions) != 0:
-			# Choose best solutions based on users' optimizations
-			return solutions
+			# After exhausting all possibile assignments
+			if len(solutions) != 0:
+				# Choose best solutions based on users' optimizations
+				return solutions
 
-		return "No satisfying assignment found. Try a lower Q or higher workload?"
+			return "No satisfying assignment found. Try a lower Q or higher workload?"
 
 variables = (fall, spring)
 constraints = (courses_to_prereqs, prereqs_to_courses)
