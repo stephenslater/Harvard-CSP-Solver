@@ -29,6 +29,8 @@ courses_to_prereqs = {}
 # dictionary mapping courses to the classes they enable later
 prereqs_to_courses = {} 
 
+from copy import deepcopy
+
 class Semester(object):
 	def __init__(self, domain, max_courses, semester, specified):
 		self.semester = semester
@@ -153,8 +155,8 @@ class CSP_Solver(object):
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
 	# The 8 main variables should be the semesters, and each Semester object has n classes
-	def solve(csp):
-		def rec_backtrack(assignmet, csp):
+	def solve():
+		def rec_backtrack(assignment):
 			if is_complete(assignment):
 				solutions.append(assignment)
 			else:
@@ -171,7 +173,8 @@ class CSP_Solver(object):
 			solutions = []
 
 			# Begin recursive calls to DFS over possible assignments
-			rec_backtrack({}, csp)
+			current_state = copy.deepcopy(self.state)
+			rec_backtrack(current_state)
 
 			# After exhausting all possibile assignments
 			if len(solutions) != 0:
@@ -190,4 +193,7 @@ history = [('CS 50', 1), ('CS 51', 2), ('CS 20', 2)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
+solutions = csp.solve()
+for solution in solutions:
+	print solution
 
