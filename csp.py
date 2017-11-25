@@ -148,19 +148,29 @@ class CSP_Solver(object):
 
 		self.state = start
 
+	# Check if all concentration requirements (e.g. theory, breadth, depth) fulfilled
+	# Check if all prerequisites satisfied before taking a given class
+	# Check if average q score and assingment quality per semester meet criteria
+	# Check if workload in each semester does not exceed max allowed
+	def is_complete(assignment):
+		for semester in range(1,9):
+			pass
+
 	# Use Min Constraining Value and Least Values Remaining heuristics
 	def get_unassigned_var(semester):
 		pass
+
+
 
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
 	# The 8 main variables should be the semesters, and each Semester object has n classes
 	def solve():
 		def rec_backtrack(assignment):
-			if is_complete(assignment):
+			if self.is_complete(assignment):
 				solutions.append(assignment)
 			else:
-				var = get_unassigned_var(variables)
+				var = self.get_unassigned_var(variables)
 			
 
 
