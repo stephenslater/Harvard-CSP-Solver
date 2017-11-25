@@ -93,6 +93,13 @@ class Semester(object):
 
 	# Move courses that are unavailable out of the available set
 
+
+#
+# SUGGESTION: Define Semester class as a class within CSP_Solver so that
+# we can avoid repetition like "Semester(__, __, specified)" and just access
+# data from CSP_Solver directly.
+# See: https://stackoverflow.com/questions/1765677/nested-classes-scope
+#
 class CSP_Solver(object):
 	# type history: [(string, int)] e.g. [('CS 50', 1), ('CS 51', 2)]
 	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history):
