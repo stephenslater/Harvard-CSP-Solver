@@ -181,5 +181,6 @@ workload = 30.0
 assignments = 3.0
 history = [('CS 50', 1), ('CS 51', 2), ('CS 20', 2)]
 
-CSP_Solver()
+csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
+
 
