@@ -1,27 +1,37 @@
+# CS 182 Final Project, Fall 2017
+# CS-P: CS Concentration Solver
+# Menaka Narayanan and Stephen Slater
+# Helper file to store Q-scores and prerequisites
+
 import csv
 
 
 # Global variables to avoid typing lots of strings later
-q = 'q'
-w = 'w'
-a = 'a'
-t = 't'
-
 strict = 'strict'
 recommended = 'recommended'
 one_of = 'one of'
 all_of = 'all of'
 
+# Q-score, workload, assignments, title
+q = 'q'
+w = 'w'
+a = 'a'
+t = 't'
+
+# Dictionary mapping courses to their Q-scores
 courses_to_q = dict()
+
+# Dictionary mapping courses to the prereqs required for them
 courses_to_prereqs = dict()
 
+# Other sets to help us organize classes
 fall = set()
 spring = set()
 unknown = set()
 undergrad = set()
 grad = set()
 
-# Storing None whenever information does not exist
+# Convert Q-scores to floats, storing None if nonexistent
 def q_helper(s):
 	print "S is {}".format(s)
 	if len(s) == 0:
@@ -29,16 +39,14 @@ def q_helper(s):
 	else:
 		return float(s)
 
+# Converting prerequisites to list, returning empty list if nonexistent
 def p_helper(s):
 	if s:
-		lst = s.split(';')
-		#print lst
-		return lst
-		#print s
+		return s.split(';')
 	else:
 		return []
 
-# Stores Q-scores
+# Reads and stores Q-scores
 def storeQdata(filename):
 	with open(filename, 'r') as f:
 		reader = csv.reader(f, delimiter = ",")
@@ -48,6 +56,9 @@ def storeQdata(filename):
 			if first:
 				first = False
 				continue
+
+			if not row[0]:
+				break
 
 			# Stores Q-scores
 			course = row[0]
@@ -80,6 +91,9 @@ def storeQdata(filename):
 		print "Grad classes are {}".format(grad)
 		print "Undergrad classes are {}".format(undergrad)
 
+
+# Reads and stores prerequisites
+# Does not yet handle 2 special cases that start with SPECIAL
 def storePrereqs(filename):
 	with open(filename, 'r') as f:
 		reader = csv.reader(f, delimiter = ",")
@@ -89,10 +103,11 @@ def storePrereqs(filename):
 			if first:
 				first = False
 				continue
+
 			if not row[0]:
 				break
-			#print row
 			
+			# Stores first 4 columns in dictionary
 			course = row[0]
 			courses_to_prereqs[course] = {strict: {one_of: [], all_of: []}, recommended: {one_of: [], all_of: []}}
 			courses_to_prereqs[course][strict][all_of] = p_helper(row[1])
@@ -100,9 +115,9 @@ def storePrereqs(filename):
 			courses_to_prereqs[course][recommended][all_of] = p_helper(row[3])
 			courses_to_prereqs[course][recommended][one_of] = p_helper(row[4])
 
-	print courses_to_prereqs
+	print "Prerequisites are {}".format(courses_to_prereqs)
 
 
-#storeQdata('courses.csv')
+storeQdata('courses.csv')
 storePrereqs('prerequisites.csv')
 			
