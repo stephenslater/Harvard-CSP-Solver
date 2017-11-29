@@ -39,12 +39,12 @@ def q_helper(s):
 	else:
 		return float(s)
 
-# Converting prerequisites to list, returning empty list if nonexistent
+# Converting prerequisites to set, returning empty set if nonexistent
 def p_helper(s):
 	if s:
-		return s.split(';')
+		return set(s.split(';'))
 	else:
-		return []
+		return set()
 
 # Reads and stores Q-scores
 def storeQdata(filename):
@@ -74,7 +74,8 @@ def storeQdata(filename):
 			elif row[1] == "Spring":
 				spring.add(course)
 			else:
-				unknown.add(course)
+				fall.add(course)
+				spring.add(course)
 
 			# Stores Grad versus Undergrad class
 			name = course.split()
@@ -90,6 +91,7 @@ def storeQdata(filename):
 		print "Unknown semester classes are {}".format(unknown)
 		print "Grad classes are {}".format(grad)
 		print "Undergrad classes are {}".format(undergrad)
+	return fall, spring, courses_to_q
 
 
 # Reads and stores prerequisites
@@ -109,13 +111,14 @@ def storePrereqs(filename):
 			
 			# Stores first 4 columns in dictionary
 			course = row[0]
-			courses_to_prereqs[course] = {strict: {one_of: [], all_of: []}, recommended: {one_of: [], all_of: []}}
+			courses_to_prereqs[course] = {strict: {one_of: set(), all_of: set()}, recommended: {one_of: set(), all_of: set()}}
 			courses_to_prereqs[course][strict][all_of] = p_helper(row[1])
 			courses_to_prereqs[course][strict][one_of] = p_helper(row[2])
 			courses_to_prereqs[course][recommended][all_of] = p_helper(row[3])
 			courses_to_prereqs[course][recommended][one_of] = p_helper(row[4])
 
 	print "Prerequisites are {}".format(courses_to_prereqs)
+	return courses_to_prereqs
 
 
 storeQdata('courses.csv')
