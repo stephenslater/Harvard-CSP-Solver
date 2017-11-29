@@ -24,6 +24,10 @@ courses_to_q = dict()
 # Dictionary mapping courses to the prereqs required for them
 courses_to_prereqs = dict()
 
+# Dictionary mapping courses to which courses should not be taken after
+# e.g. Do not take Math 1b after Math 21b, or AM 21a after Math 21a
+disable_future = dict()
+
 # Other sets to help us organize classes
 fall = set()
 spring = set()
@@ -93,7 +97,6 @@ def storeQdata(filename):
 		# print "Undergrad classes are {}".format(undergrad)
 	return fall, spring, courses_to_q
 
-
 # Reads and stores prerequisites
 # Does not yet handle 2 special cases that start with SPECIAL
 def storePrereqs(filename):
@@ -116,9 +119,10 @@ def storePrereqs(filename):
 			courses_to_prereqs[course][strict][one_of] = p_helper(row[2])
 			courses_to_prereqs[course][recommended][all_of] = p_helper(row[3])
 			courses_to_prereqs[course][recommended][one_of] = p_helper(row[4])
+			disable_future[course] = p_helper(row[5])
 
 	# print "Prerequisites are {}".format(courses_to_prereqs)
-	return courses_to_prereqs
+	return courses_to_prereqs, disable_future
 
 
 # storeQdata('courses.csv')
