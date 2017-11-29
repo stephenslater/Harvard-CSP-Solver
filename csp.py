@@ -15,6 +15,7 @@
 import load
 fall, spring, courses_to_q = load.storeQdata('courses.csv')
 courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
+# print disable_future
 
 # dictionary mapping courses to the classes they enable later
 # prereqs_to_courses = {} 
@@ -262,9 +263,9 @@ class CSP_Solver(object):
 
 		breadth = (counter == 2)
 
-		for s in range(1,9):
-			assignment[s].print_courses()
-		print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
+		# for s in range(1,9):
+		# 	assignment[s].print_courses()
+		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
 		
 		for semester in range(1,9):
 			course_count = self.state[semester].course_count
@@ -333,13 +334,14 @@ class CSP_Solver(object):
 								for s in range(1, 9):
 									if value in self.state[s].available:
 										self.state[s].available.remove(value)
+								for q in range(semester + 1, 9):
 									for j in disable_future[value]:
-										if j in self.state[s].available:
-											self.state[s].available.remove(j)
+										if j in self.state[q].available:
+											self.state[q].available.remove(j)
 								new_version = copy.deepcopy(self.state)
-								print "\nCurrent status: ".format(new_version)
-								self.state[semester].print_courses()
-								print "\n"
+								# print "\nCurrent status: ".format(new_version)
+								# self.state[semester].print_courses()
+								# print "\n"
 								result = rec_backtrack(new_version)
 								# if result:
 								# 	# solutions.append(result)
