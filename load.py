@@ -33,7 +33,7 @@ grad = set()
 
 # Convert Q-scores to floats, storing None if nonexistent
 def q_helper(s):
-	print "S is {}".format(s)
+	# print "S is {}".format(s)
 	if len(s) == 0:
 		return None
 	else:
@@ -85,12 +85,12 @@ def storeQdata(filename):
 				undergrad.add(course)
 
 
-		print "Q-scores for courses are {}".format(courses_to_q)
-		print "Fall classes are {}".format(fall)
-		print "Spring classes are {}".format(spring)
-		print "Unknown semester classes are {}".format(unknown)
-		print "Grad classes are {}".format(grad)
-		print "Undergrad classes are {}".format(undergrad)
+		# print "Q-scores for courses are {}".format(courses_to_q)
+		# print "Fall classes are {}".format(fall)
+		# print "Spring classes are {}".format(spring)
+		# print "Unknown semester classes are {}".format(unknown)
+		# print "Grad classes are {}".format(grad)
+		# print "Undergrad classes are {}".format(undergrad)
 	return fall, spring, courses_to_q
 
 
@@ -117,10 +117,10 @@ def storePrereqs(filename):
 			courses_to_prereqs[course][recommended][all_of] = p_helper(row[3])
 			courses_to_prereqs[course][recommended][one_of] = p_helper(row[4])
 
-	print "Prerequisites are {}".format(courses_to_prereqs)
+	# print "Prerequisites are {}".format(courses_to_prereqs)
 	return courses_to_prereqs
 
 
-storeQdata('courses.csv')
-storePrereqs('prerequisites.csv')
+# storeQdata('courses.csv')
+# storePrereqs('prerequisites.csv')
 			
