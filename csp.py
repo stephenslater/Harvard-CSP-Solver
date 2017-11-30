@@ -283,10 +283,10 @@ class CSP_Solver(object):
 
 			if course_count > 0:
 				avg_q = float(sum(course_qs)) / course_count
-				avg_work = float(sum(workloads)) / course_count
+				work = float(sum(workloads))
 				avg_a = float(sum(course_as)) / course_count
-				if avg_q < self.min_q or avg_work > self.max_w or avg_a < self.min_a:
-					#print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, avg_work, self.max_w, avg_a, self.min_a)
+				if avg_q < self.min_q or work > self.max_w or avg_a < self.min_a:
+					#print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, work, self.max_w, avg_a, self.min_a)
 					return False
 
 		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
@@ -368,7 +368,6 @@ class CSP_Solver(object):
 
 		# Begin recursive calls to DFS over possible assignments
 		current_state = copy.deepcopy(self.state)
-		# print "Starting recursive calls"
 		rec_backtrack(current_state)
 
 		# After exhausting all possibile assignments
@@ -376,16 +375,13 @@ class CSP_Solver(object):
 			# Choose best solutions based on users' optimizations
 			return solutions
 
-		# for i in range(1, 9):
-		# 	self.state[i].print_courses()
-		# print "No satisfying assignment found. Try a lower Q or higher workload?"
 		return []
 
 variables = (fall, spring)
 constraints = courses_to_prereqs, disable_future
 classes_per_semester = 2
 q_score = 2.0
-workload = 30.0
+workload = 25.0
 assignments = 2.0
 history = [('CS 20', 2), ('CS 121', 3),('Stat 110', 3)]
 
@@ -393,8 +389,8 @@ csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload
 
 study_cards = csp.solve()
 print "*********"
-for study_card in study_cards:
-	print "\nPrinting new solution:"
+for sol, study_card in enumerate(study_cards):
+	print "\nSolution {}:".format(sol)
 	for j in study_card:
 		study_card[j].print_courses()
 
