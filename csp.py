@@ -11,9 +11,10 @@
 	# }
 # Typed all of these, but will generate them from reading CSV instead
 
-
+import random
 import load
 fall, spring, courses_to_q = load.storeQdata('courses.csv')
+# fall.remove('Math 23a')
 courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
 # print disable_future
 
@@ -282,7 +283,7 @@ class CSP_Solver(object):
 				avg_work = float(sum(workloads)) / course_count
 				avg_a = float(sum(course_as)) / course_count
 				if avg_q < self.min_q or avg_work > self.max_w or avg_a < self.min_a:
-					print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, avg_work, self.max_w, avg_a, self.min_a)
+					# print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, avg_work, self.max_w, avg_a, self.min_a)
 					return False
 
 		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
@@ -306,9 +307,18 @@ class CSP_Solver(object):
 				# print "New complete assignment:\n"
 				# for s in range(1,9):
 				# 	assignment[s].print_courses()
-				self.num_solutions += 1
-				print "$$$$$$$$$$$$$$"
-				print self.num_solutions
+				# self.num_solutions += 1
+				if self.num_solutions > 500000:
+					print "just reached 500k solutions"
+				elif self.num_solutions > 250000:
+					print "just reached 250k solutions" 
+				elif self.num_solutions > 100000:
+					print "just reached 100k solutions"
+				elif self.num_solutions > 50000:
+					print "just reached 50k solutions"
+
+				# print "$$$$$$$$$$$$$$"
+				# print self.num_solutions
 				solutions.append(assignment)
 				# print "COMPLETE ASSIGNMENT!"
 				# return assignment
@@ -361,9 +371,10 @@ class CSP_Solver(object):
 		# print "Starting recursive calls"
 		rec_backtrack(current_state)
 
-		# After exhausting all possibile assignments
+		# After exhausting all possible assignments
 		if len(solutions) != 0:
 			# Choose best solutions based on users' optimizations
+			print "SOLUTIONS COUNT: {}".format(len(solutions))
 			return solutions
 
 		# for i in range(1, 9):
@@ -377,14 +388,14 @@ classes_per_semester = 3
 q_score = 2.0
 workload = 50.0
 assignments = 2.0
-history = [('CS 50', 1), ('CS 51', 2), ('CS 20', 2), ('CS 121', 3)]
+history = [('CS 50', 1), ('AM 21a', 1), ('CS 51', 2), ('CS 20', 2), ('Math 21b', 2), ('CS 121', 3)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
 study_cards = csp.solve()
-print "*********"
-for study_card in study_cards:
-	print "\nPrinting new solution:"
-	for j in study_card:
-		study_card[j].print_courses()
+# print "*********"
+# for study_card in study_cards:
+# 	print "\nPrinting new solution:"
+# 	for j in study_card:
+# 		study_card[j].print_courses()
 
