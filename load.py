@@ -125,6 +125,6 @@ def storePrereqs(filename):
 	return courses_to_prereqs, disable_future
 
 
-# storeQdata('courses.csv')
-# storePrereqs('prerequisites.csv')
+# storeQdata('courses_simple.csv')
+# storePrereqs('prereqs_simple.csv')
 			
