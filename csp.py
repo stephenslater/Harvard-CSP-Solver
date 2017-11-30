@@ -13,8 +13,12 @@
 
 
 import load
-fall, spring, courses_to_q = load.storeQdata('courses.csv')
-courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
+# fall, spring, courses_to_q = load.storeQdata('courses.csv')
+# courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
+fall, spring, courses_to_q = load.storeQdata('courses_simple.csv')
+courses_to_prereqs, disable_future = load.storePrereqs('prereqs_simple.csv')
+
+
 # print disable_future
 
 # dictionary mapping courses to the classes they enable later
@@ -307,8 +311,8 @@ class CSP_Solver(object):
 				# for s in range(1,9):
 				# 	assignment[s].print_courses()
 				self.num_solutions += 1
-				print "$$$$$$$$$$$$$$"
-				print self.num_solutions
+				# print "$$$$$$$$$$$$$$"
+				# print self.num_solutions
 				solutions.append(assignment)
 				# print "COMPLETE ASSIGNMENT!"
 				# return assignment
@@ -349,7 +353,13 @@ class CSP_Solver(object):
 								self.state[semester].remove_course(value)
 								self.all.remove(value)
 								for n in range(1, 9):
-									self.state[n].available.add(value)
+									if n % 2 == 1:
+										if value in fall:
+											self.state[n].available.add(value)
+									else:
+										if value in spring:
+											self.state[n].available.add(value)
+
 								# self.state[semester].available.remove(value)
 					return False
 				# print "Filled up study card"
@@ -373,7 +383,7 @@ class CSP_Solver(object):
 
 variables = (fall, spring)
 constraints = courses_to_prereqs, disable_future
-classes_per_semester = 3
+classes_per_semester = 2
 q_score = 2.0
 workload = 50.0
 assignments = 2.0
