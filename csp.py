@@ -286,7 +286,7 @@ class CSP_Solver(object):
 				avg_work = float(sum(workloads)) / course_count
 				avg_a = float(sum(course_as)) / course_count
 				if avg_q < self.min_q or avg_work > self.max_w or avg_a < self.min_a:
-					print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, avg_work, self.max_w, avg_a, self.min_a)
+					#print "avg_q: {}, min_q: {}, avg_work: {}, max_w: {}, avg_a: {}, min_a: {}".format(avg_q, self.min_q, avg_work, self.max_w, avg_a, self.min_a)
 					return False
 
 		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
@@ -385,9 +385,9 @@ variables = (fall, spring)
 constraints = courses_to_prereqs, disable_future
 classes_per_semester = 2
 q_score = 2.0
-workload = 50.0
+workload = 30.0
 assignments = 2.0
-history = [('CS 50', 1), ('CS 51', 2), ('CS 20', 2), ('CS 121', 3)]
+history = [('CS 20', 2), ('CS 121', 3),('Stat 110', 3)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
