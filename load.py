@@ -52,8 +52,8 @@ def p_helper(s):
 
 # Reads and stores Q-scores
 def storeQdata(filename):
-	with open(filename, 'r') as f:
-		reader = csv.reader(f, delimiter = ",")
+	with open(filename, 'rU') as f:
+		reader = csv.reader(f, delimiter = ",") #dialect=csv.excel_tab) #delimiter = ",")
 		first = True
 
 		for row in reader:
@@ -100,8 +100,8 @@ def storeQdata(filename):
 # Reads and stores prerequisites
 # Does not yet handle 2 special cases that start with SPECIAL
 def storePrereqs(filename):
-	with open(filename, 'r') as f:
-		reader = csv.reader(f, delimiter = ",")
+	with open(filename, 'rU') as f:
+		reader = csv.reader(f, delimiter = ",") #dialect=csv.excel_tab) #delimiter = ",")
 		first = True
 
 		for row in reader:
