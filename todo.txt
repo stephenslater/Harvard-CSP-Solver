@@ -1,12 +1,28 @@
 Remaining tasks:
 
+Priority:
+- Prevent duplicate solutions/computation: Assigning (A, B, C) is same as (B, C, A) etc.
+  See note in is_complete()
+
 Important:
+- For a user's input, only return ~5-10 schedules (right now we generate all)
 - Use the sources we cited in project proposal, since this is part of rubric
 - Remove unnecessary columns from excel
 - Consolidate "remove from future" and "don't take after" columns
 	- E.g. after 121, don't take 50. Currently the 50's might be in wrong column
+- Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
+- When adding courses back at the end of csp.solve(), only add back to future semesters?
+- Combine "add_course" and "add_course_with_FC" methods, similar to is_complete() by passing in True from the FC version and making the default forward=False be an argument to the method
+- Expand forward checking: Look at future semesters as well in addition to verifying current semester
+- Decide about freeing future courses from unavailabe set vs. looking back at prereqs
 - MRV (maybe get info from sources?)
 - LCV (same as above)
+- After assigning a course to semester i, branch out from there and look at future semesters in addition to trying to fulfill the remaining slots in semester i
+- Handle ES 153 as a 140s course when checking for breadth
+- Take user input about whether to optimize on q/w/a, combination, or none
+	- Complete order_domain_values() function to sort the domain (in list form) by lowest workload, etc.
+- Write our own optimize() function that is just a linear combination of how we weight q/w/a:
+	E.g. score = 10*q - 1.5*w + 0.5*a
 - Plot runtimes of different algorithms/heuristics
 - Compare runtimes theoretically
 - Testing
@@ -16,4 +32,5 @@ Maybe:
 - AC-3
 - Local search algorithm
 - Clean up OOP code (potentially put Semester class within CSP_Solver)
+- Honors concentration (just expand technical and breadth requirements)
 

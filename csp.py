@@ -2,19 +2,12 @@
 # CS-P: CS Concentration Solver
 # Menaka Narayanan and Stephen Slater
 
-# Read CSV file in python, generate fall courses, spring courses, and q-guide data
-# Instead of manually inputting these
-# Example
-# courses_to_q = {
-	# 'CS 50': {'q': 3.6, 'w': 12.6, 'a': 3.6, 't': 'Introduction to Computer Science I'}
-
-	# }
-# Typed all of these, but will generate them from reading CSV instead
-
 import random
 import load
 import time
+import copy
 
+# Full course domain
 # fall, spring, courses_to_q = load.storeQdata('courses.csv')
 # courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
 
@@ -26,9 +19,7 @@ courses_to_prereqs, disable_future = load.storePrereqs('prereqs_medium.csv')
 # fall, spring, courses_to_q = load.storeQdata('courses_simple2.csv')
 # courses_to_prereqs, disable_future = load.storePrereqs('prereqs_simple2.csv')
 
-# print disable_future
-
-# dictionary mapping courses to the classes they enable later
+# If we use model where we free future courses after prereqs
 # prereqs_to_courses = {} 
 
 strict = 'strict'
@@ -44,22 +35,25 @@ w = 'w'
 a = 'a'
 t = 't'
 
-import copy
-
 class Semester(object):
 	def __init__(self, domain, semester, specified):
 		self.semester = semester
 		self.max_courses, self.min_q, self.max_w, self.min_a, self.prereqs, self.csp = specified
 		self.course_count = 0
+		self.assigned = set()
+		self.available = set(domain)
+
+		# If we decide to free future courses based on previous ones first
+		# self.unavailable = set()
+
+		# Variables we probably won't need
 		# self.course_qs = []
 		# self.avg_q = 0.
 		# self.w = 0.
 		# self.course_as = []
 		# self.avg_a = 0.
-		self.assigned = set()
-		self.available = set(domain)
-		# self.unavailable = set()
-
+		
+	# When trying to add course, make sure it doesn't violate q-scores, etc.
 	def forward_check(self, potential_course):
 		self.assigned.add(potential_course)
 		self.course_count += 1
@@ -68,42 +62,30 @@ class Semester(object):
 			work = float(sum([courses_to_q[course][w] for course in self.assigned]))
 			avg_a = float(sum([courses_to_q[course][a] for course in self.assigned])) / self.course_count
 
-			# If the semester isn't empty, then it must meet constraints
-			# if self.course_count > 0 and \
-			#    (avg_q < self.min_q or work > self.max_w or avg_a < self.min_a):
-			# 		return False
 			if avg_q < self.min_q or work > self.max_w or avg_a < self.min_a:
 				self.assigned.remove(potential_course)
 				self.course_count -= 1
 				return False
 		return True
 
-	def add_course(self, course):
-		# if self.course_count == max_courses:
-		# 	print "Tried to take too many courses in one semester"
-		# 	return
-		# print "TRYING TO ADD COURSE: {} to semester {}".format(course, self.semester)
 
+	def add_course(self, course):
 		reqs = self.prereqs[course]
-		# print "{} reqs: {}\n".format(course, reqs)
 		if self.course_count < self.max_courses:
-			# print "room in the semester"
 			prev_courses = set()
 			for i in range(1, self.semester):
 				assigned_courses = self.csp.state[i].assigned
-				# print "Assigned courses for semester {}: {}".format(i, assigned_courses)
 				for j in assigned_courses:
 					prev_courses.add(j)
 
+			# No forward checking in this version. If there aren't prereqs, add it
 			if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
 			   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
 				self.assigned.add(course)
 				self.course_count += 1
-				# self.available.remove(course)
-				# print "Added {} to semester {}".format(course, self.semester)
-				# print "SCHOOL IS IN SESSION"
 				return True
-				# return True
+
+			# If there are prereqs, we need to fulfill them and account for different math series
 			else:
 				maths = {'Math 21a', 'Math 21b'}
 				recommended_all = (reqs[recommended][all_of] - prev_courses == set())
@@ -118,50 +100,32 @@ class Semester(object):
 					if len(prev_courses & linalg) > 0:	
 						recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
 
-				# is consistent with
-				# print "now checking prereqs"
-				# print "reqs: {}, prev_courses: {}".format(reqs, prev_courses)
-				# print "************************"
-				# print "overlap: {}".format(reqs[recommended][one_of] & prev_courses)
+				# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
 				if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
 				   reqs[strict][all_of] - prev_courses == set() and \
 				   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
 				   recommended_all:
-
 					self.assigned.add(course)
 					self.course_count += 1
-					# self.available.remove(course)
-					# print "Added {} to semester {}".format(course, self.semester)
-					# print "SCHOOL IS IN SESSION"
 					return True
 		return False
 
 	def add_course_FC(self, course):
-		# if self.course_count == max_courses:
-		# 	print "Tried to take too many courses in one semester"
-		# 	return
-		# print "TRYING TO ADD COURSE: {} to semester {}".format(course, self.semester)
-
 		reqs = self.prereqs[course]
-		# print "{} reqs: {}\n".format(course, reqs)
 		if self.course_count < self.max_courses:
-			# print "room in the semester"
 			prev_courses = set()
 			for i in range(1, self.semester):
 				assigned_courses = self.csp.state[i].assigned
-				# print "Assigned courses for semester {}: {}".format(i, assigned_courses)
 				for j in assigned_courses:
 					prev_courses.add(j)
 
-			# TODO: combine this if-else
+			# TODO: combine this if-else block
+			# There are no prereqs, so make sure that adding it is okay
 			if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
 			   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
 				return self.forward_check(course)
-				# self.available.remove(course)
-				# print "Added {} to semester {}".format(course, self.semester)
-				# print "SCHOOL IS IN SESSION"
 
-				# return True
+			# If there are prereqs, we need to fulfill them and account for different math series
 			else:
 				maths = {'Math 21a', 'Math 21b'}
 				recommended_all = (reqs[recommended][all_of] - prev_courses == set())
@@ -176,35 +140,13 @@ class Semester(object):
 					if len(prev_courses & linalg) > 0:	
 						recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
 
-				# is consistent with
-				# print "now checking prereqs"
-				# print "reqs: {}, prev_courses: {}".format(reqs, prev_courses)
-				# print "************************"
-				# print "overlap: {}".format(reqs[recommended][one_of] & prev_courses)
+				# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
 				if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
 				   reqs[strict][all_of] - prev_courses == set() and \
 				   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
 				   recommended_all:
-
 				    return self.forward_check(course)
-					# self.available.remove(course)
-					# print "Added {} to semester {}".format(course, self.semester)
-					# print "SCHOOL IS IN SESSION"
-					# return self.forward_check()
 		return False
-
-		# Check constraints on a given semester
-		# if self.check():
-			
-
-			# # Remove courses from available or unassigned
-			# self.assigned.add(course)
-			# self.available.remove(course)
-			# return True
-
-		# else:
-		# 	print "Cannot assign {} to semester {} because it is not available".format(course, self.semester)
-		# 	return False
 
 	def remove_course(self, course):
 		self.assigned.remove(course)
@@ -224,10 +166,6 @@ class Semester(object):
 
 	# 	return True
 
-
-	# Move courses that are unavailable out of the available set
-
-
 #
 # SUGGESTION: Define Semester class as a class within CSP_Solver so that
 # we can avoid repetition like "Semester(__, __, specified)" and just access
@@ -235,7 +173,6 @@ class Semester(object):
 # See: https://stackoverflow.com/questions/1765677/nested-classes-scope
 #
 class CSP_Solver(object):
-	# type history: [(string, int)] e.g. [('CS 50', 1), ('CS 51', 2)]
 	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history):
 		self.fall, self.spring = variables
 		self.constraints = constraints
@@ -251,7 +188,7 @@ class CSP_Solver(object):
 
 		# A plan of study for 8 semesters
 		# Each semester has max n concentration courses
-		# In each semester, we store sets of assigned, available, and unavailable
+		# In each semester, we store sets of assigned, available, and unavailable courses
 		start = {1: Semester(fall, 1, (2, q_score, workload, assignments, constraints[0], self)), 
 				 2: Semester(spring, 2, specified),
 				 3: Semester(fall, 3, specified), 
@@ -262,7 +199,7 @@ class CSP_Solver(object):
 				 8: Semester(spring, 8, specified) 
 			}
 
-		# Populate state with classes user has already taken
+		# Populate state with classes user has already taken; remove them from future
 		for course, semester in history:
 			start[semester].assigned.add(course)
 			self.all.add(course)
@@ -271,10 +208,8 @@ class CSP_Solver(object):
 				if course in start[s].available:
 					start[s].available.remove(course)
 
-
-			# if start_state[semester].add_course(course):
-
-			# 	# Still have future semester to fulfil prereqs for
+			# Model where we free courses after taking their prereqs instead of looking back
+			# Still have future semester to fulfil prereqs for
 			# 	if semester < 8:
 
 			# 		# Remove from unassigned domains in future semesters anything that
@@ -284,16 +219,24 @@ class CSP_Solver(object):
 			# 				for i in range(semester, 9):
 			# 					start[semester].open_course(class_enabled)
 
-			# else:
-			# 	print "Could not add {} to semester {}".format(course, semester)
-
 		self.state = start
 
 	# Check if all concentration requirements (e.g. theory, breadth, depth) fulfilled
 	# Check if all prerequisites satisfied before taking a given class
-	# Check if average q score and assingment quality per semester meet criteria
-	# Check if workload in each semester does not exceed max allowed
+	# If not using forward checking,
+		# Check that average q, workload, and average a meet requirements
 	def is_complete(self, assignment, forward=False):
+
+		# If we've already seen this assignment at this semester given previous semester
+		# Then don't count it as a new solution in this function
+		# If we haven't seen it, then add it to some solutions seen set
+		# We can handle this by just adding every assignment to a visited set
+		# And never try again if we've already seen a combination of (A, B, C)
+		# Regardless of whether (A, B, C) is a solution
+		# I.e. if we've seen it before, return false on is_complete, and somehow we 
+		# don't want to do more recursive calls for anything after, since we will have 
+		# done them already
+
 		basic_1 = set(['Math 1a', 'Math 1b', 'CS 20', 'Math 21b'])
 		basic_2 = set(['Math 1a', 'Math 1b', 'CS 20', 'AM 21b'])
 		multivar = set(['AM 21a', 'Math 21a', 'Math 23b', 'Math 25b', 'Math 55b'])
@@ -317,8 +260,6 @@ class CSP_Solver(object):
 
 		software = software_1 - self.all == set() or software_2 - self.all == set() or software_3 - self.all == set()
 		all_3 = {'CS 50', 'CS 51', 'CS 61'} - self.all == set()
-		# print "self.all is {}".format(self.all)
-		# print "all_3 is {}".format(all_3)
 
 		theory = 'CS 121' in self.all and len(theory_1 & self.all) > 0
 
@@ -338,11 +279,7 @@ class CSP_Solver(object):
 
 		breadth = (counter == 2)
 
-		# for s in range(1,9):
-		# 	assignment[s].print_courses()
-		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
-		
-		# Instead of checking this here, we will do forward checking
+		# Don't check this here if we are using forward checking
 		if not forward:
 			for semester in range(1,9):
 				course_count = self.state[semester].course_count
@@ -359,8 +296,7 @@ class CSP_Solver(object):
 						return False
 
 		# Add the semester combo as an already-recorded solution before returning
-
-		# print "math: {}, software: {}, theory: {}, technical: {}, breadth: {}".format(math, software, theory, technical, breadth)
+		
 		return math and software and theory and technical and breadth
 
 
@@ -369,63 +305,55 @@ class CSP_Solver(object):
 	def get_unassigned_var(self, state):
 		for semester in range(1, 9):
 			if self.state[semester].course_count != self.state[semester].max_courses:
-				# print semester
 				return semester
 		return None
 
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
-	# The 8 main variables should be the semesters, and each Semester object has n classes
+	# The 8 main variables should be the semesters, and each Semester object can take n courses
 	def solve(self):
 		def rec_backtrack(assignment):
+			# Number of function calls, used to compare algorithms
 			self.attempts += 1
-			# print "inside rec call"
 			if self.is_complete(assignment):
-				# print "\nSolution {}:".format(self.num_solutions)
-				# for s in range(1,9):
-				# 	assignment[s].print_courses()
 				self.num_solutions += 1
-				# print "$$$$$$$$$$$$$$"
-				# print self.num_solutions
 				solutions.append(assignment)
-				# print "COMPLETE ASSIGNMENT!"
-				# return assignment
 			else:
 				semester = self.get_unassigned_var(self.state)
 				if semester:
-					# self.state[semester].print_courses()
-					# prev_courses = set()
-					# for i in range(1, semester + 1):
-					# 	for j in self.state[i].assigned:
-					# 		prev_courses.add(j)
 					all_vals = self.state[semester].available.union(self.state[semester].assigned)
 
 					for value in all_vals:
-						# print "found available classes: {}".format(self.state[semester].available)
-# 
 						if value in self.state[semester].available:
-							# print "Trying to add {} to semester {}".format(value, semester)
 							if self.state[semester].add_course(value):
-								# print "added a course successfully: {} to semester {}".format(value, semester)
-
 								self.all.add(value)
 								for s in range(1, 9):
 									if value in self.state[s].available:
 										self.state[s].available.remove(value)
+
+								# Don't want to allow for taking courses simultaneously?
+								# I.e. if Math 21a disabled AM 21a in the future,
+								# We want to disabled AM21a from right now as well
+								# So we can maybe change this to be in range(semester, 9)
+								# Remove disabled courses from future semesters
 								for q in range(semester + 1, 9):
 									for j in disable_future[value]:
 										if j in self.state[q].available:
 											self.state[q].available.remove(j)
+
 								new_version = copy.deepcopy(self.state)
-								# print "\nCurrent status: ".format(new_version)
-								# self.state[semester].print_courses()
-								# print "\n"
 								result = rec_backtrack(new_version)
-								# if result:
-								# 	# solutions.append(result)
-								# 	return result
+
 								self.state[semester].remove_course(value)
 								self.all.remove(value)
+
+								# Add the course back for future options
+								# Only add it back to its valid semester(s),
+								# since some courses are offered fall and spring
+								# In addition to adding back "value", we should
+								# add back courses that we had disabled by taking value
+
+								# I think this should be range(semester, 9) instead?
 								for n in range(1, 9):
 									if n % 2 == 1:
 										if value in fall:
@@ -434,9 +362,7 @@ class CSP_Solver(object):
 										if value in spring:
 											self.state[n].available.add(value)
 
-								# self.state[semester].available.remove(value)
 					return False
-				# print "Filled up study card"
 
 		self.num_solutions = 0
 		self.attempts = 0
@@ -448,8 +374,7 @@ class CSP_Solver(object):
 
 		# After exhausting all possible assignments
 		if len(solutions) != 0:
-			# Choose best solutions based on users' optimizations
-			# print "SOLUTIONS COUNT: {}".format(len(solutions))
+			# Choose best solutions based on user's desired optimizations
 			return solutions
 
 		return []
@@ -465,33 +390,17 @@ class CSP_Solver(object):
 			self.attempts += 1
 			# print "inside rec call"
 			if self.is_complete(assignment, True):
-				# print "\nSolution {}:".format(self.num_solutions)
-				# for s in range(1,9):
-				# 	assignment[s].print_courses()
 				self.num_solutions += 1
-				# print "$$$$$$$$$$$$$$"
-				# print self.num_solutions
 				solutions.append(assignment)
-				# print "COMPLETE ASSIGNMENT!"
-				# return assignment
+
 			else:
 				semester = self.get_unassigned_var(self.state)
 				if semester:
-					# self.state[semester].print_courses()
-					# prev_courses = set()
-					# for i in range(1, semester + 1):
-					# 	for j in self.state[i].assigned:
-					# 		prev_courses.add(j)
 					all_vals = self.state[semester].available.union(self.state[semester].assigned)
 
 					for value in all_vals:
-						# print "found available classes: {}".format(self.state[semester].available)
-
 						if value in self.state[semester].available:
-							# print "Trying to add {} to semester {}".format(value, semester)
 							if self.state[semester].add_course_FC(value):
-								# print "added a course successfully: {} to semester {}".format(value, semester)
-
 								self.all.add(value)
 								for s in range(1, 9):
 									if value in self.state[s].available:
@@ -501,15 +410,11 @@ class CSP_Solver(object):
 										if j in self.state[q].available:
 											self.state[q].available.remove(j)
 								new_version = copy.deepcopy(self.state)
-								# print "\nCurrent status: ".format(new_version)
-								# self.state[semester].print_courses()
-								# print "\n"
 								result = rec_backtrack_with_FC(new_version)
-								# if result:
-								# 	# solutions.append(result)
-								# 	return result
 								self.state[semester].remove_course(value)
 								self.all.remove(value)
+
+								# See notes in non-FC add_course method
 								for n in range(1, 9):
 									if n % 2 == 1:
 										if value in fall:
@@ -518,9 +423,7 @@ class CSP_Solver(object):
 										if value in spring:
 											self.state[n].available.add(value)
 
-								# self.state[semester].available.remove(value)
 					return False
-				# print "Filled up study card"
 
 		self.num_solutions = 0
 		self.attempts = 0
@@ -533,8 +436,6 @@ class CSP_Solver(object):
 		# After exhausting all possible assignments
 		if len(solutions) != 0:
 			# Choose best solutions based on users' optimizations
-
-			# print "SOLUTIONS COUNT: {}".format(len(solutions))
 			return solutions
 
 		return []
