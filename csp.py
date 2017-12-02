@@ -381,7 +381,7 @@ class CSP_Solver(object):
 variables = (fall, spring)
 constraints = courses_to_prereqs, disable_future
 classes_per_semester = 2
-q_score = 2.0
+q_score = 3.0
 workload = 25.0
 assignments = 2.0
 history = [('CS 20', 2), ('CS 121', 3),('Stat 110', 3)]
