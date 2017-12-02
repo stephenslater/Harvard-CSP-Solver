@@ -33,4 +33,5 @@ Maybe:
 - Local search algorithm
 - Clean up OOP code (potentially put Semester class within CSP_Solver)
 - Honors concentration (just expand technical and breadth requirements)
+- Front end using Flask
 
