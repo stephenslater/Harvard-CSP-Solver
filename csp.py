@@ -12,12 +12,12 @@ import copy
 # courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
 
 # Medium test domain
-fall, spring, courses_to_q = load.storeQdata('courses_medium.csv')
-courses_to_prereqs, disable_future = load.storePrereqs('prereqs_medium.csv')
+# fall, spring, courses_to_q = load.storeQdata('courses_medium.csv')
+# courses_to_prereqs, disable_future = load.storePrereqs('prereqs_medium.csv')
 
 # Small test domain
-# fall, spring, courses_to_q = load.storeQdata('courses_simple2.csv')
-# courses_to_prereqs, disable_future = load.storePrereqs('prereqs_simple2.csv')
+fall, spring, courses_to_q = load.storeQdata('courses_small.csv')
+courses_to_prereqs, disable_future = load.storePrereqs('prereqs_small.csv')
 
 # If we use model where we free future courses after prereqs
 # prereqs_to_courses = {} 
@@ -67,7 +67,6 @@ class Semester(object):
 				self.course_count -= 1
 				return False
 		return True
-
 
 	def add_course(self, course):
 		reqs = self.prereqs[course]
@@ -453,10 +452,10 @@ csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload
 print "\nHistory: {}".format(history)
 print "Fall: {}".format(fall)
 print "Spring: {}".format(spring)
-t0 = time.time()
-study_cards = csp.solve()
-t1 = time.time()
-print "\nNo forward checking:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t1 - t0, len(study_cards), csp.attempts)
+# t0 = time.time()
+# study_cards = csp.solve()
+# t1 = time.time()
+# print "\nNo forward checking:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t1 - t0, len(study_cards), csp.attempts)
 t2 = time.time()
 study_cards_with_FC = csp.solve_with_FC()
 t3 = time.time()
@@ -489,37 +488,37 @@ def compare_plans(plan_a, plan_b):
 
 	return True
 
-overlaps = []
-different = []
-for j in study_cards_with_FC:
-	shared = False
-	for i in study_cards:
-		shared = compare_plans(j, i)
-		if shared:
-			overlaps.append(j)
-			break
-	if not shared:
-		different.append(j)
-		print "Non FC never found:"
-		for k in range(1,9):
-			j[k].print_courses()
+# overlaps = []
+# different = []
+# for j in study_cards_with_FC:
+# 	shared = False
+# 	for i in study_cards:
+# 		shared = compare_plans(j, i)
+# 		if shared:
+# 			overlaps.append(j)
+# 			break
+# 	if not shared:
+# 		different.append(j)
+# 		print "Non FC never found:"
+# 		for k in range(1,9):
+# 			j[k].print_courses()
 
-for count, d in enumerate(different):
-	print "\nUnfound Solution {}:".format(count + 1)
-	for m in range(1,9):
-		d[m].print_courses()
+# for count, d in enumerate(different):
+# 	print "\nUnfound Solution {}:".format(count + 1)
+# 	for m in range(1,9):
+# 		d[m].print_courses()
 
-print "Solutions w/o FC: {}".format(len(study_cards))
+# print "Solutions w/o FC: {}".format(len(study_cards))
 print "Solutions w/  FC: {}".format(len(study_cards_with_FC))
-print "Overlaps should be: {}".format(len(study_cards))
-print "Total overlap is: {}".format(len(overlaps))
-print "Difference should be: {}".format(len(study_cards_with_FC) - len(study_cards))
-print "Difference is: {}".format(len(different))
+# print "Overlaps should be: {}".format(len(study_cards))
+# print "Total overlap is: {}".format(len(overlaps))
+# print "Difference should be: {}".format(len(study_cards_with_FC) - len(study_cards))
+# print "Difference is: {}".format(len(different))
 
 # study_cards = csp.solve()
-# print "*********"
-# for sol, plan in enumerate(study_cards_with_FC):
-# 	print "\nSolution {}:".format(sol)
-# 	for j in plan:
-# 		plan[j].print_courses()
+print "*********"
+for sol, plan in enumerate(study_cards_with_FC):
+	print "\nSolution {}:".format(sol + 1)
+	for j in plan:
+		plan[j].print_courses()
 
