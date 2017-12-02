@@ -1,0 +1,18 @@
+Remaining tasks:
+
+Important:
+- Remove unnecessary columns from excel
+- Consolidate "remove from future" and "don't take after" columns
+	- E.g. after 121, don't take 50. Currently the 50's might be in wrong column
+- MRV
+- LCV
+- Plot runtimes of different algorithms/heuristics
+- Compare runtimes theoretically
+- Testing
+- Report
+
+Maybe:
+- AC-3
+- Local search algorithm
+- Clean up OOP code (potentially put Semester class within CSP_Solver)
+
