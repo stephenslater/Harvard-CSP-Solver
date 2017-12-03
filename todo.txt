@@ -5,6 +5,7 @@ Priority:
 X Don't create duplicate solutions
 
 Important:
+- Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
 - For a user's input, only return ~5-10 schedules (right now we generate all)
 - Use the sources we cited in project proposal, since this is part of rubric
 - Remove unnecessary columns from excel
