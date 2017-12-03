@@ -1,8 +1,7 @@
 Remaining tasks:
 
 Priority:
-- Prevent duplicate solutions/computation: Assigning (A, B, C) is same as (B, C, A) etc.
-  See note in is_complete()
+
 
 Important:
 - For a user's input, only return ~5-10 schedules (right now we generate all)
