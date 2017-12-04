@@ -192,13 +192,20 @@ class CSP_Solver(object):
 			}
 
 		# Populate state with classes user has already taken; remove them from future
+		latest_sem = 0
 		for course, semester in history:
+			if semester > latest_sem:
+				latest_sem = semester
 			start[semester].assigned.add(course)
 			self.all.add(course)
 			start[semester].course_count += 1
 			for s in range(1, 9):
 				if course in start[s].available:
 					start[s].available.remove(course)
+
+		# print "Latest sem is {}".format(latest_sem)
+		for sem in range(latest_sem):
+			start[sem+1].max_courses = 0
 
 			# Model where we free courses after taking their prereqs instead of looking back
 			# Still have future semester to fulfil prereqs for
@@ -228,6 +235,10 @@ class CSP_Solver(object):
 		# I.e. if we've seen it before, return false on is_complete, and somehow we 
 		# don't want to do more recursive calls for anything after, since we will have 
 		# done them already
+
+		# print "Printing potential solution"
+		# for k in range(1,9):
+		# 	assignment[k].print_courses()
 
 		basic_1 = set(['Math 1a', 'Math 1b', 'CS 20', 'Math 21b'])
 		basic_2 = set(['Math 1a', 'Math 1b', 'CS 20', 'AM 21b'])
@@ -273,6 +284,7 @@ class CSP_Solver(object):
 
 		# Don't check this here if we are using forward checking
 		if not forward:
+			#print "Not using forward checking"
 			for semester in range(1,9):
 				course_count = self.state[semester].course_count
 
@@ -288,7 +300,6 @@ class CSP_Solver(object):
 						return False
 
 		# Add the semester combo as an already-recorded solution before returning
-		
 		return math and software and theory and technical and breadth
 
 	# Look at all previous semesters when determining prereq satisfaction; no simultaneity allowed
@@ -320,11 +331,11 @@ class CSP_Solver(object):
 	# Return multiple semesters from which to branch out
 	def get_unassigned_var(self, state):
 		for semester in range(1, 9):
-			if self.state[semester].course_count != self.state[semester].max_courses:
+			if self.state[semester].course_count < self.state[semester].max_courses:
 				if semester < 8:
-					if self.state[semester+1].course_count != self.state[semester+1].max_courses:
+					if self.state[semester+1].course_count < self.state[semester+1].max_courses:
 						if semester != 7:
-							if self.state[semester+2].course_count != self.state[semester+2].max_courses:
+							if self.state[semester+2].course_count < self.state[semester+2].max_courses:
 								return [semester, semester + 1, semester + 2]
 						else:
 							return [semester, semester + 1]				
@@ -343,6 +354,7 @@ class CSP_Solver(object):
 				solutions.append(assignment)
 			else:
 				semesters = self.get_unassigned_var(self.state)
+				#print "Unassigned semesters are {}".format(semesters)
 				if semesters:
 					for semester in semesters:
 						all_vals = self.state[semester].available.union(self.state[semester].assigned)
@@ -480,7 +492,7 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 25.0
 assignments = 2.0
-history = [('CS 20', 2),('Stat 110', 3)]
+history = [('CS 51', 2), ('CS 20', 2)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
