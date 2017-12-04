@@ -6,18 +6,19 @@ import random
 import load
 import time
 import copy
+import matplotlib.pyplot as plt
 
 # Full course domain
 # fall, spring, courses_to_q = load.storeQdata('courses.csv')
 # courses_to_prereqs, disable_future = load.storePrereqs('prerequisites.csv')
 
 # Medium test domain
-# fall, spring, courses_to_q = load.storeQdata('courses_medium.csv')
-# courses_to_prereqs, disable_future = load.storePrereqs('prereqs_medium.csv')
+fall, spring, courses_to_q = load.storeQdata('courses_medium.csv')
+courses_to_prereqs, disable_future = load.storePrereqs('prereqs_medium.csv')
 
 # Small test domain
-fall, spring, courses_to_q = load.storeQdata('courses_small.csv')
-courses_to_prereqs, disable_future = load.storePrereqs('prereqs_small.csv')
+# fall, spring, courses_to_q = load.storeQdata('courses_small.csv')
+# courses_to_prereqs, disable_future = load.storePrereqs('prereqs_small.csv')
 
 # If we use model where we free future courses after prereqs
 # prereqs_to_courses = {} 
@@ -487,10 +488,10 @@ csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload
 print "\nHistory: {}".format(history)
 print "Fall: {}".format(fall)
 print "Spring: {}".format(spring)
-t0 = time.time()
-study_cards = csp.solve()
-t1 = time.time()
-print "\nNo forward checking:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t1 - t0, len(study_cards), csp.attempts)
+# t0 = time.time()
+# study_cards = csp.solve()
+# t1 = time.time()
+# print "\nNo forward checking:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t1 - t0, len(study_cards), csp.attempts)
 t2 = time.time()
 study_cards_with_FC = csp.solve_with_FC()
 t3 = time.time()
@@ -543,16 +544,25 @@ def compare_plans(plan_a, plan_b):
 # 	for m in range(1,9):
 # 		d[m].print_courses()
 
-print "Solutions w/o FC: {}".format(len(study_cards))
-print "Solutions w/  FC: {}".format(len(study_cards_with_FC))
+# print "Solutions w/o FC: {}".format(len(study_cards))
+# print "Solutions w/  FC: {}".format(len(study_cards_with_FC))
 # print "Overlaps should be: {}".format(len(study_cards))
 # print "Total overlap is: {}".format(len(overlaps))
 # print "Difference should be: {}".format(len(study_cards_with_FC) - len(study_cards))
 # print "Difference is: {}".format(len(different))
 
-print "*********"
-for sol, plan in enumerate(study_cards_with_FC):
-	print "\nSolution {}:".format(sol + 1)
-	for j in plan:
-		plan[j].print_courses()
+# print "*********"
+# for sol, plan in enumerate(study_cards_with_FC):
+# 	print "\nSolution {}:".format(sol + 1)
+# 	for j in plan:
+# 		plan[j].print_courses()
+
+# PLOTS
+# Plot number of courses in domain against total solutions found
+# Plot number of courses in domain against time for FC vs. non FC
+# Plot number of courses in domain against time for MRV, LCV, and neither
+# Plot number of courses in domain against time for backtracking vs. local vs. AC
+# plt.plot([1,2,3,4], [1,4,9,16], 'ro')
+# plt.axis([0, 6, 0, 20])
+# plt.show()
 
