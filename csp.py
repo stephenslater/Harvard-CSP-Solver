@@ -140,8 +140,11 @@ class Semester(object):
 				    return self.forward_check(course)
 		return False
 
+	# I added these conditionals because we were getting a key error, but have commented them out -m
 	def remove_course(self, course):
+		#if course in self.assigned:
 		self.assigned.remove(course)
+		#if course not in self.available:
 		self.available.add(course)
 		self.course_count -= 1
 		return None
@@ -193,13 +196,20 @@ class CSP_Solver(object):
 			}
 
 		# Populate state with classes user has already taken; remove them from future
+		latest_sem = 0
 		for course, semester in history:
+			if semester > latest_sem:
+				latest_sem = semester
 			start[semester].assigned.add(course)
 			self.all.add(course)
 			start[semester].course_count += 1
 			for s in range(1, 9):
 				if course in start[s].available:
 					start[s].available.remove(course)
+
+		# print "Latest sem is {}".format(latest_sem)
+		for sem in range(latest_sem):
+			start[sem+1].max_courses = 0
 
 			# Model where we free courses after taking their prereqs instead of looking back
 			# Still have future semester to fulfil prereqs for
@@ -229,6 +239,10 @@ class CSP_Solver(object):
 		# I.e. if we've seen it before, return false on is_complete, and somehow we 
 		# don't want to do more recursive calls for anything after, since we will have 
 		# done them already
+
+		# print "Printing potential solution"
+		# for k in range(1,9):
+		# 	assignment[k].print_courses()
 
 		basic_1 = set(['Math 1a', 'Math 1b', 'CS 20', 'Math 21b'])
 		basic_2 = set(['Math 1a', 'Math 1b', 'CS 20', 'AM 21b'])
@@ -274,6 +288,7 @@ class CSP_Solver(object):
 
 		# Don't check this here if we are using forward checking
 		if not forward:
+			#print "Not using forward checking"
 			for semester in range(1,9):
 				course_count = self.state[semester].course_count
 
@@ -289,7 +304,6 @@ class CSP_Solver(object):
 						return False
 
 		# Add the semester combo as an already-recorded solution before returning
-		
 		return math and software and theory and technical and breadth
 
 	# Look at all previous semesters when determining prereq satisfaction; no simultaneity allowed
@@ -321,11 +335,11 @@ class CSP_Solver(object):
 	# Return multiple semesters from which to branch out
 	def get_unassigned_var(self, state):
 		for semester in range(1, 9):
-			if self.state[semester].course_count != self.state[semester].max_courses:
+			if self.state[semester].course_count < self.state[semester].max_courses:
 				if semester < 8:
-					if self.state[semester+1].course_count != self.state[semester+1].max_courses:
+					if self.state[semester+1].course_count < self.state[semester+1].max_courses:
 						if semester != 7:
-							if self.state[semester+2].course_count != self.state[semester+2].max_courses:
+							if self.state[semester+2].course_count < self.state[semester+2].max_courses:
 								return [semester, semester + 1, semester + 2]
 						else:
 							return [semester, semester + 1]				
@@ -343,35 +357,53 @@ class CSP_Solver(object):
 				self.num_solutions += 1
 				solutions.append(assignment)
 			else:
+				# Gets next semesters needing additional courses
 				semesters = self.get_unassigned_var(self.state)
+				#print "Unassigned semesters are {}".format(semesters)
 				if semesters:
 					for semester in semesters:
 						all_vals = self.state[semester].available.union(self.state[semester].assigned)
 
+						# Iterates through every candidate class
 						for value in all_vals:
+							# Class is available to be assigned
 							if value in self.state[semester].available:
 								temp_assigned = tuple(self.state[semester].assigned.union(value))
+								# Checks for duplicate semesters
 								if not self.already_computed(semester, temp_assigned):
 									if self.state[semester].add_course(value):
 										self.all.add(value)
-										for s in range(1, 9):
+										# Removes this class from all future semesters
+										for s in range(semester, 9):
 											if value in self.state[s].available:
 												self.state[s].available.remove(value)
 
 										# Don't want to allow for taking courses simultaneously?
 										# I.e. if Math 21a disabled AM 21a in the future,
 										# We want to disable AM21a from right now as well
-										# So we can maybe change this to be in range(semester, 9)
-										# Remove disabled courses from future semesters
+										# So we can maybe change this to be in range(semester, 9) --> CHANGE MADE -m
+										
+										# NEW VERSION: Remove disabled courses from this and future semesters
+										# for n in range(semester, 9):
+										# 	for prev_disabled in disable_future[value]:
+										# 		if prev_disabled in self.state[n].available:
+										# 			self.state[n].available.remove(prev_disabled)
+										
+										# OLD VERSION
 										for q in range(semester + 1, 9):
 											for j in disable_future[value]:
 												if j in self.state[q].available:
-													self.state[q].available.remove(j)
+													self.state[q].available.remove(j)													
 
 										new_version = copy.deepcopy(self.state)
 										result = rec_backtrack(new_version)
 
+										#self.state[semester].print_courses()
+										#print "Course to remove is {}".format(value)
 										self.state[semester].remove_course(value)
+
+										# Added this conditional to fix key error
+										#if value in self.all:
 										self.all.remove(value)
 
 										# Add the course back for future options
@@ -379,8 +411,19 @@ class CSP_Solver(object):
 										# since some courses are offered fall and spring
 										# In addition to adding back "value", we should
 										# add back courses that we had disabled by taking value
-
 										# I think this should be range(semester, 9) instead?
+
+										# NEW VERSION: 
+										# for n in range(semester, 9):
+										# 	for prev_disabled in disable_future[value]:
+										# 		if n % 2 == 1:
+										# 			if prev_disabled in fall:
+										# 				self.state[n].available.add(prev_disabled)
+										# 		else:
+										# 			if prev_disabled in spring:
+										# 				self.state[n].available.add(prev_disabled)
+
+										# OLD VERSION
 										for n in range(1, 9):
 											if n % 2 == 1:
 												if value in fall:
@@ -481,7 +524,7 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 25.0
 assignments = 2.0
-history = [('CS 20', 2),('Stat 110', 3)]
+history = [('CS 51', 2), ('CS 20', 2)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
