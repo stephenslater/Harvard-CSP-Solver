@@ -66,78 +66,89 @@ class Semester(object):
 			if avg_q < self.min_q or work > self.max_w or avg_a < self.min_a:
 				self.assigned.remove(potential_course)
 				self.course_count -= 1
+				print "Couldn't add {} to semester {}".format(potential_course, self.semester)
 				return False
+		print "Adding {} to semester {}".format(potential_course, self.semester)
+
 		return True
 
 	def add_course(self, course):
-		reqs = self.prereqs[course]
-		if self.course_count < self.max_courses:
-			prev_courses = self.csp.get_previous(self.semester)
+		if self.course_count < self.max_courses and self.csp.check_prereqs(course, self.semester):
+			# reqs = self.prereqs[course]
+			# prev_courses = self.csp.get_previous(self.semester)
+			# if self.check_prereqs(course):
+			self.assigned.add(course)
+			self.course_count += 1
+			return True				
 
 			# No forward checking in this version. If there aren't prereqs, add it
-			if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
-			   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
-				self.assigned.add(course)
-				self.course_count += 1
-				return True
+			# if self.check_prereqs():
+			# if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
+			#    len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
+			# 	self.assigned.add(course)
+			# 	self.course_count += 1
+			# 	return True
 
-			# If there are prereqs, we need to fulfill them and account for different math series
-			else:
-				maths = {'Math 21a', 'Math 21b'}
-				recommended_all = (reqs[recommended][all_of] - prev_courses == set())
-				if 'Math 21a' in reqs[recommended][all_of]:
-					if len(prev_courses & multivar) > 0:
-						if 'Math 21b' in reqs[recommended][all_of]:
-							if len(prev_courses & linalg) > 0:
-								recommended_all = (reqs[recommended][all_of] - maths - prev_courses == set())
-						else:
-							recommended_all = (reqs[recommended][all_of] - {'Math 21a'} - prev_courses == set())
-				elif 'Math 21b' in reqs[recommended][all_of]:
-					if len(prev_courses & linalg) > 0:	
-						recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
+			# # If there are prereqs, we need to fulfill them and account for different math series
+			# else:
+			# 	maths = {'Math 21a', 'Math 21b'}
+			# 	recommended_all = (reqs[recommended][all_of] - prev_courses == set())
+			# 	if 'Math 21a' in reqs[recommended][all_of]:
+			# 		if len(prev_courses & multivar) > 0:
+			# 			if 'Math 21b' in reqs[recommended][all_of]:
+			# 				if len(prev_courses & linalg) > 0:
+			# 					recommended_all = (reqs[recommended][all_of] - maths - prev_courses == set())
+			# 			else:
+			# 				recommended_all = (reqs[recommended][all_of] - {'Math 21a'} - prev_courses == set())
+			# 	elif 'Math 21b' in reqs[recommended][all_of]:
+			# 		if len(prev_courses & linalg) > 0:	
+			# 			recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
 
-				# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
-				if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
-				   reqs[strict][all_of] - prev_courses == set() and \
-				   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
-				   recommended_all:
-					self.assigned.add(course)
-					self.course_count += 1
-					return True
+			# 	# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
+			# 	if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
+			# 	   reqs[strict][all_of] - prev_courses == set() and \
+			# 	   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
+			# 	   recommended_all:
+			# 		self.assigned.add(course)
+			# 		self.course_count += 1
+			# 		return True
 		return False
 
 	def add_course_FC(self, course):
-		reqs = self.prereqs[course]
-		if self.course_count < self.max_courses:
-			prev_courses = self.csp.get_previous(self.semester)
+		# reqs = self.prereqs[course]
+		if self.course_count < self.max_courses and self.csp.check_prereqs(course, self.semester):
+			# prev_courses = self.csp.get_previous(self.semester)
+			# if self.check_prereqs():
+			return self.forward_check(course)
+
 
 			# TODO: combine this if-else block
 			# There are no prereqs, so make sure that adding it is okay
-			if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
-			   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
-				return self.forward_check(course)
+			# if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
+			#    len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
+			# 	return self.forward_check(course)
 
-			# If there are prereqs, we need to fulfill them and account for different math series
-			else:
-				maths = {'Math 21a', 'Math 21b'}
-				recommended_all = (reqs[recommended][all_of] - prev_courses == set())
-				if 'Math 21a' in reqs[recommended][all_of]:
-					if len(prev_courses & multivar) > 0:
-						if 'Math 21b' in reqs[recommended][all_of]:
-							if len(prev_courses & linalg) > 0:
-								recommended_all = (reqs[recommended][all_of] - maths - prev_courses == set())
-						else:
-							recommended_all = (reqs[recommended][all_of] - {'Math 21a'} - prev_courses == set())
-				elif 'Math 21b' in reqs[recommended][all_of]:
-					if len(prev_courses & linalg) > 0:	
-						recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
+			# # If there are prereqs, we need to fulfill them and account for different math series
+			# else:
+			# 	maths = {'Math 21a', 'Math 21b'}
+			# 	recommended_all = (reqs[recommended][all_of] - prev_courses == set())
+			# 	if 'Math 21a' in reqs[recommended][all_of]:
+			# 		if len(prev_courses & multivar) > 0:
+			# 			if 'Math 21b' in reqs[recommended][all_of]:
+			# 				if len(prev_courses & linalg) > 0:
+			# 					recommended_all = (reqs[recommended][all_of] - maths - prev_courses == set())
+			# 			else:
+			# 				recommended_all = (reqs[recommended][all_of] - {'Math 21a'} - prev_courses == set())
+			# 	elif 'Math 21b' in reqs[recommended][all_of]:
+			# 		if len(prev_courses & linalg) > 0:	
+			# 			recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set())	
 
-				# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
-				if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
-				   reqs[strict][all_of] - prev_courses == set() and \
-				   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
-				   recommended_all:
-				    return self.forward_check(course)
+			# 	# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
+			# 	if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
+			# 	   reqs[strict][all_of] - prev_courses == set() and \
+			# 	   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
+			# 	   recommended_all:
+			# 	    return self.forward_check(course)
 		return False
 
 	# I added these conditionals because we were getting a key error, but have commented them out -m
@@ -170,7 +181,7 @@ class Semester(object):
 class CSP_Solver(object):
 	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history):
 		self.fall, self.spring = variables
-		self.constraints = constraints
+		self.prereqs_to_courses, self.disable_future = constraints
 		self.n = num_classes
 		self.history = history
 		self.min_q = q_score
@@ -181,6 +192,8 @@ class CSP_Solver(object):
 		self.num_solutions = 0
 		self.attempts = 0
 		self.seen_plans = set()
+		self.latest_sem = 0
+
 
 		# A plan of study for 8 semesters
 		# Each semester has max n concentration courses
@@ -196,10 +209,9 @@ class CSP_Solver(object):
 			}
 
 		# Populate state with classes user has already taken; remove them from future
-		latest_sem = 0
+		# latest_sem = 0
 		for course, semester in history:
-			if semester > latest_sem:
-				latest_sem = semester
+			self.latest_sem = max(semester, self.latest_sem)
 			start[semester].assigned.add(course)
 			self.all.add(course)
 			start[semester].course_count += 1
@@ -208,8 +220,13 @@ class CSP_Solver(object):
 					start[s].available.remove(course)
 
 		# print "Latest sem is {}".format(latest_sem)
-		for sem in range(latest_sem):
-			start[sem+1].max_courses = 0
+		# for sem in range(latest_sem):
+		# 	start[sem+1].max_courses = start[semester].course_count
+
+		# for i in range(1, 9):
+		# 	if start[semester].course_count > 0:
+		# 		start[semester].max_courses = start[semester].course_count
+
 
 			# Model where we free courses after taking their prereqs instead of looking back
 			# Still have future semester to fulfil prereqs for
@@ -309,9 +326,9 @@ class CSP_Solver(object):
 	# Look at all previous semesters when determining prereq satisfaction; no simultaneity allowed
 	def get_previous(self, semester, tuple_version = False):
 		if tuple_version:
-			final = tuple()
+			final = []
 			for i in range(1, semester):
-				final += tuple(self.state[i].assigned,)
+				final.append(tuple(self.state[i].assigned))
 			return final
 
 		else:
@@ -325,26 +342,106 @@ class CSP_Solver(object):
 	# instead of computing it every time, but would have to deal with resetting it
 	def already_computed(self, semester, current_semester):
 		current_plan = self.get_previous(semester, tuple_version=True)
-		current_plan += (current_semester,)
+		# print current_plan
+		current_plan.append(current_semester)
+		current_plan = tuple(current_plan)
 		if current_plan not in self.seen_plans:
 			self.seen_plans.add(current_plan)
 			return False
 		return True
 
+	def check_prereqs(self, course, semester):
+		# print "Checking prereqs for {} in semester {}".format(course, semester)
+		reqs = self.prereqs_to_courses[course]
+		if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
+		   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
+		   	# print "Yes\n"
+		   	return True
+
+		prev_courses = self.get_previous(semester)
+
+		maths = {'Math 21a', 'Math 21b'}
+		recommended_all = (reqs[recommended][all_of] - prev_courses == set())
+
+		if 'Math 21a' in reqs[recommended][all_of]:
+			if len(prev_courses & multivar) > 0:
+				if 'Math 21b' in reqs[recommended][all_of]:
+					if len(prev_courses & linalg) > 0:
+						recommended_all = (reqs[recommended][all_of] - maths - prev_courses == set())
+				else:
+					recommended_all = (reqs[recommended][all_of] - {'Math 21a'} - prev_courses == set())
+		elif 'Math 21b' in reqs[recommended][all_of]:
+			if len(prev_courses & linalg) > 0:	
+				recommended_all = (reqs[recommended][all_of] - {'Math 21b'} - prev_courses == set()) 
+
+		# Now that we've defined all the ways to fulfill math, make sure we fulfill reqs
+		if ((len(reqs[strict][one_of]) == 0) or (len(reqs[strict][one_of] & prev_courses) > 0)) and \
+		   reqs[strict][all_of] - prev_courses == set() and \
+		   ((len(reqs[recommended][one_of]) == 0) or (len(reqs[recommended][one_of] & prev_courses) > 0)) and \
+		   recommended_all:
+		   	# print "Yes\n"
+			return True
+		# print "No\n"
+		return False
+
+	def get_min_remaining_val(self):
+		print "\n\n\n\nFinding variables with MRV"
+		minimum = float('inf')
+		lowest = []
+
+		for i in range(self.latest_sem + 1, 9):
+			valids = set()
+			print "\nSemester: {}\nAvailable: {}".format(i, self.state[i].available)
+			if self.state[i].course_count == self.state[i].max_courses:
+				print "Semester {} is full\n".format(i)
+				continue
+			for course in self.state[i].available:
+				if self.check_prereqs(course, i):
+					valids.add(course)
+				
+			print "\nSemester: {}\nValids: {}".format(i, valids)
+			size = len(valids)
+			if self.state[i].course_count < self.state[i].max_courses:
+				if 0 < size < minimum:
+					minimum = size
+					lowest = [i]
+
+		print "\n\n\n********"
+		print "Returning lowest: {}".format(lowest)
+		return lowest
+
 	# Use Min Constraining Value and Least Values Remaining heuristics
-	# Return multiple semesters from which to branch out
+	# Return multiple semesters from which to branch out: check
+	# Stop assigning courses when assignment is complete
 	def get_unassigned_var(self, state):
-		for semester in range(1, 9):
-			if self.state[semester].course_count < self.state[semester].max_courses:
-				if semester < 8:
-					if self.state[semester+1].course_count < self.state[semester+1].max_courses:
-						if semester != 7:
-							if self.state[semester+2].course_count < self.state[semester+2].max_courses:
-								return [semester, semester + 1, semester + 2]
-						else:
-							return [semester, semester + 1]				
-				return [semester]
-		return None
+
+		# MRV
+		return self.get_min_remaining_val()
+
+		# LCV
+
+		# for semester in range(self.latest_sem + 1, 9):
+		# 	if self.state[semester].course_count != self.state[semester].max_courses:
+		# 		if semester < 8:
+		# 			if self.state[semester + 1].course_count != self.state[semester + 1].max_courses:
+		# 				return [semester, semester + 1]
+		# 			return [semester]
+		# 		return [semester]
+			
+		# return None
+
+		# Old version: triple branching
+		# for semester in range(1, 9):
+		# 	if self.state[semester].course_count < self.state[semester].max_courses:
+		# 		if semester < 8:
+		# 			if self.state[semester+1].course_count < self.state[semester+1].max_courses:
+		# 				if semester != 7:
+		# 					if self.state[semester+2].course_count < self.state[semester+2].max_courses:
+		# 						return [semester, semester + 1, semester + 2]
+		# 				else:
+		# 					return [semester, semester + 1]				
+		# 		return [semester]
+		# return None
 
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
@@ -352,6 +449,7 @@ class CSP_Solver(object):
 	def solve(self):
 		def rec_backtrack(assignment):
 			# Number of function calls, used to compare algorithms
+
 			self.attempts += 1
 			if self.is_complete(assignment):
 				self.num_solutions += 1
@@ -385,21 +483,21 @@ class CSP_Solver(object):
 										
 										# NEW VERSION: Remove disabled courses from this and future semesters
 										# for n in range(semester, 9):
-										# 	for prev_disabled in disable_future[value]:
-										# 		if prev_disabled in self.state[n].available:
-										# 			self.state[n].available.remove(prev_disabled)
+										# 	for to_disable in disable_future[value]:
+										# 		if to_disable in self.state[n].available:
+										# 			self.state[n].available.remove(to_disable)
 										
 										# OLD VERSION
 										for q in range(semester + 1, 9):
-											for j in disable_future[value]:
+											for j in self.disable_future[value]:
 												if j in self.state[q].available:
 													self.state[q].available.remove(j)													
 
 										new_version = copy.deepcopy(self.state)
 										result = rec_backtrack(new_version)
 
-										#self.state[semester].print_courses()
-										#print "Course to remove is {}".format(value)
+										self.state[semester].print_courses()
+										print "Course to remove is {}".format(value)
 										self.state[semester].remove_course(value)
 
 										# Added this conditional to fix key error
@@ -413,7 +511,7 @@ class CSP_Solver(object):
 										# add back courses that we had disabled by taking value
 										# I think this should be range(semester, 9) instead?
 
-										# NEW VERSION: 
+										# # NEW VERSION: 
 										# for n in range(semester, 9):
 										# 	for prev_disabled in disable_future[value]:
 										# 		if n % 2 == 1:
@@ -459,6 +557,12 @@ class CSP_Solver(object):
 	def solve_with_FC(self):
 		def rec_backtrack_with_FC(assignment):
 			self.attempts += 1
+
+			print "Attempt: {}".format(self.attempts)
+			for o in range(1, 9):
+				self.state[o].print_courses()
+
+
 			# print "inside rec call"
 			if self.is_complete(assignment, forward = True):
 				self.num_solutions += 1
@@ -472,24 +576,48 @@ class CSP_Solver(object):
 
 						for value in all_vals:
 							if value in self.state[semester].available:
-								temp_assigned = tuple(self.state[semester].assigned.union(value))
+								temp_assigned = tuple(self.state[semester].assigned.union(set([value])))#
 								if not self.already_computed(semester, temp_assigned):
 									if self.state[semester].add_course_FC(value):
 										self.all.add(value)
 										for s in range(1, 9):
 											if value in self.state[s].available:
 												self.state[s].available.remove(value)
-										for q in range(semester + 1, 9):
-											for j in disable_future[value]:
-												if j in self.state[q].available:
-													self.state[q].available.remove(j)
+
 										new_version = copy.deepcopy(self.state)
+										for q in range(semester, 9): # or semester
+											for j in self.disable_future[value]:
+												if j in new_version[q].available:
+													new_version[q].available.remove(j)
+											
+										# old version
+										# for q in range(semester, 9): # or semester
+										# 	for j in disable_future[value]:
+										# 		if j in self.state[q].available:
+										# 			self.state[q].available.remove(j)
+										# new_version = copy.deepcopy(self.state)
+										
 										# print "Printing current status"
 										# for l in range(1,9):
 										# 	new_version[l].print_courses()
 										result = rec_backtrack_with_FC(new_version)
+
+										# self.state[semester].print_courses()
+										# print "Course to remove is {}".format(value)										
 										self.state[semester].remove_course(value)
 										self.all.remove(value)
+
+
+										# NEW VERSION: 
+										# for n in range(semester, 9):
+										# 	for prev_disabled in disable_future[value]:
+										# 		if n % 2 == 1:
+										# 			if prev_disabled in fall:
+										# 				self.state[n].available.add(prev_disabled)
+										# 		else:
+										# 			if prev_disabled in spring:
+										# 				self.state[n].available.add(prev_disabled)
+
 
 										# See notes in non-FC add_course method
 										for n in range(1, 9):
@@ -524,7 +652,7 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 25.0
 assignments = 2.0
-history = [('CS 51', 2), ('CS 20', 2)]
+history = [('CS 50', 1)] #, ('Stat 110', 3)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
 
@@ -595,10 +723,13 @@ def compare_plans(plan_a, plan_b):
 # print "Difference is: {}".format(len(different))
 
 # print "*********"
-# for sol, plan in enumerate(study_cards_with_FC):
-# 	print "\nSolution {}:".format(sol + 1)
-# 	for j in plan:
-# 		plan[j].print_courses()
+for sol, plan in enumerate(study_cards_with_FC):
+	print "\nSolution {}:".format(sol + 1)
+	for j in plan:
+		plan[j].print_courses()
+
+#print csp.seen_plans
+#print "Total seen plans: {}".format(len(csp.seen_plans))
 
 # PLOTS
 # Plot number of courses in domain against total solutions found

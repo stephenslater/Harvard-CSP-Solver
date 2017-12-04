@@ -1,11 +1,11 @@
 Remaining tasks:
 
 Priority:
-- If user inputs history, then we need to remove all variables from the available set of previous semesters so that we don't try to add courses in the past that the user did not take
+X If user inputs history, then we need to remove all variables from the available set of previous semesters so that we don't try to add courses in the past that the user did not take
 X Don't create duplicate solutions
 
 Important:
-- Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
+X Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
 - For a user's input, only return ~5-10 schedules (right now we generate all)
 - Use the sources we cited in project proposal, since this is part of rubric
 X Remove unnecessary columns from excel
@@ -22,6 +22,7 @@ X After assigning a course to semester i, branch out from there and look at futu
 - Handle ES 153 as a 140s course when checking for breadth
 - Take user input about whether to optimize on q/w/a, combination, or none
 	- Complete order_domain_values() function to sort the domain (in list form) by lowest workload, etc.
+	- Shuffle values and choose randomly
 - Write our own optimize() function that is just a linear combination of how we weight q/w/a:
 	E.g. score = 10*q - 1.5*w + 0.5*a
 - Plot runtimes of different algorithms/heuristics
