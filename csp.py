@@ -139,8 +139,11 @@ class Semester(object):
 				    return self.forward_check(course)
 		return False
 
+	# I added these conditionals because we were getting a key error, but have commented them out -m
 	def remove_course(self, course):
+		#if course in self.assigned:
 		self.assigned.remove(course)
+		#if course not in self.available:
 		self.available.add(course)
 		self.course_count -= 1
 		return None
@@ -353,36 +356,53 @@ class CSP_Solver(object):
 				self.num_solutions += 1
 				solutions.append(assignment)
 			else:
+				# Gets next semesters needing additional courses
 				semesters = self.get_unassigned_var(self.state)
 				#print "Unassigned semesters are {}".format(semesters)
 				if semesters:
 					for semester in semesters:
 						all_vals = self.state[semester].available.union(self.state[semester].assigned)
 
+						# Iterates through every candidate class
 						for value in all_vals:
+							# Class is available to be assigned
 							if value in self.state[semester].available:
 								temp_assigned = tuple(self.state[semester].assigned.union(value))
+								# Checks for duplicate semesters
 								if not self.already_computed(semester, temp_assigned):
 									if self.state[semester].add_course(value):
 										self.all.add(value)
-										for s in range(1, 9):
+										# Removes this class from all future semesters
+										for s in range(semester, 9):
 											if value in self.state[s].available:
 												self.state[s].available.remove(value)
 
 										# Don't want to allow for taking courses simultaneously?
 										# I.e. if Math 21a disabled AM 21a in the future,
 										# We want to disable AM21a from right now as well
-										# So we can maybe change this to be in range(semester, 9)
-										# Remove disabled courses from future semesters
+										# So we can maybe change this to be in range(semester, 9) --> CHANGE MADE -m
+										
+										# NEW VERSION: Remove disabled courses from this and future semesters
+										# for n in range(semester, 9):
+										# 	for prev_disabled in disable_future[value]:
+										# 		if prev_disabled in self.state[n].available:
+										# 			self.state[n].available.remove(prev_disabled)
+										
+										# OLD VERSION
 										for q in range(semester + 1, 9):
 											for j in disable_future[value]:
 												if j in self.state[q].available:
-													self.state[q].available.remove(j)
+													self.state[q].available.remove(j)													
 
 										new_version = copy.deepcopy(self.state)
 										result = rec_backtrack(new_version)
 
+										#self.state[semester].print_courses()
+										#print "Course to remove is {}".format(value)
 										self.state[semester].remove_course(value)
+
+										# Added this conditional to fix key error
+										#if value in self.all:
 										self.all.remove(value)
 
 										# Add the course back for future options
@@ -390,8 +410,19 @@ class CSP_Solver(object):
 										# since some courses are offered fall and spring
 										# In addition to adding back "value", we should
 										# add back courses that we had disabled by taking value
-
 										# I think this should be range(semester, 9) instead?
+
+										# NEW VERSION: 
+										# for n in range(semester, 9):
+										# 	for prev_disabled in disable_future[value]:
+										# 		if n % 2 == 1:
+										# 			if prev_disabled in fall:
+										# 				self.state[n].available.add(prev_disabled)
+										# 		else:
+										# 			if prev_disabled in spring:
+										# 				self.state[n].available.add(prev_disabled)
+
+										# OLD VERSION
 										for n in range(1, 9):
 											if n % 2 == 1:
 												if value in fall:

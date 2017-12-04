@@ -8,11 +8,11 @@ Important:
 - Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
 - For a user's input, only return ~5-10 schedules (right now we generate all)
 - Use the sources we cited in project proposal, since this is part of rubric
-- Remove unnecessary columns from excel
-- Consolidate "remove from future" and "don't take after" columns
-	- E.g. after 121, don't take 50. Currently the 50's might be in wrong column
+X Remove unnecessary columns from excel
+X Consolidate "remove from future" and "don't take after" columns
+	- E.g. after 121, don't take 50. Currently the 50's might be in wrong column 
 - Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
-- When adding courses back at the end of csp.solve(), only add back to future semesters?
+X When adding courses back at the end of csp.solve(), only add back to future semesters?
 - Combine "add_course" and "add_course_with_FC" methods, similar to is_complete() by passing in True from the FC version and making the default forward=False be an argument to the method
 - Expand forward checking: Look at future semesters as well in addition to verifying current semester
 - Decide about freeing future courses from unavailabe set vs. looking back at prereqs

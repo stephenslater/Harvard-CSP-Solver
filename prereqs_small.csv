@@ -1,1 +1,15 @@
-Course,Strict all of,Strict one of,Recommended all of,Recommended one of,Eliminate from future,Don't take these beforeCS 20,,,,,,CS 121;CS 124;AM 106;AM 107CS 50,,,,,,CS 51,,,,CS 50;prior,,CS 61,,,,CS 50;prior,,CS 121,,,CS 20,,CS 20,CS 124,,CS 50;prior,CS 51,,CS 20,CS 50CS 182,,,CS 51;Stat 110,,,CS 50Math 21a,,,,,Math 1a;Math 1b;AM 21a;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b,Math 21b,,,,,Math 1a;Math 1b;AM 21b;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b,Stat 110,,,,,,CS 181,,,CS 51;Stat 110;Math 21a;Math 21b,,,CS 50CS 161,,,CS 61,,,CS 50AM 106,,,Math 21a;Math 21b,,CS 20;Math 1a;Math 1b;Math 21a;Math 21b;AM 21a;AM 21b;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b,CS 134,,,Math 21a;Math 21b;Stat 110,,,CS 50
+Course,Strict all of,Strict one of,Recommended all of,Recommended one of,Eliminate from future
+CS 20,,,,,
+CS 50,,,,,
+CS 51,,,,CS 50;prior,
+CS 61,,,,CS 50;prior,
+CS 121,,,CS 20,,CS 20
+CS 124,,CS 50;prior,CS 51,,CS 20; CS 50
+CS 182,,,CS 51;Stat 110,,CS 50
+Math 21a,,,,,Math 1a;Math 1b;AM 21a;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b
+Math 21b,,,,,Math 1a;Math 1b;AM 21b;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b
+Stat 110,,,,,
+CS 181,,,CS 51;Stat 110;Math 21a;Math 21b,,CS 50
+CS 161,,,CS 61,,CS 50
+AM 106,,,Math 21a;Math 21b,,CS 20;Math 1a;Math 1b;Math 21a;Math 21b;AM 21a;AM 21b;Math 23a;Math 23b;Math 25a;Math 25b;Math 55a;Math 55b
+CS 134,,,Math 21a;Math 21b;Stat 110,,CS 50
