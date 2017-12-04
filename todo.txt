@@ -3,32 +3,35 @@ Remaining tasks:
 Priority:
 X If user inputs history, then we need to remove all variables from the available set of previous semesters so that we don't try to add courses in the past that the user did not take
 X Don't create duplicate solutions
-
-Important:
-X Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
-- For a user's input, only return ~5-10 schedules (right now we generate all)
-- Use the sources we cited in project proposal, since this is part of rubric
-X Remove unnecessary columns from excel
-X Consolidate "remove from future" and "don't take after" columns
-	- E.g. after 121, don't take 50. Currently the 50's might be in wrong column 
-- Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
-X When adding courses back at the end of csp.solve(), only add back to future semesters?
-- Combine "add_course" and "add_course_with_FC" methods, similar to is_complete() by passing in True from the FC version and making the default forward=False be an argument to the method
-- Expand forward checking: Look at future semesters as well in addition to verifying current semester
-- Decide about freeing future courses from unavailabe set vs. looking back at prereqs
-- MRV (maybe get info from sources?)
-- LCV (same as above)
-X After assigning a course to semester i, branch out from there and look at future semesters in addition to trying to fulfill the remaining slots in semester i
-- Handle ES 153 as a 140s course when checking for breadth
+- LCV 
 - Take user input about whether to optimize on q/w/a, combination, or none
 	- Complete order_domain_values() function to sort the domain (in list form) by lowest workload, etc.
 	- Shuffle values and choose randomly
 - Write our own optimize() function that is just a linear combination of how we weight q/w/a:
 	E.g. score = 10*q - 1.5*w + 0.5*a
+
+Small:
+- Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
+- Handle ES 153 as a 140s course when checking for breadth
+
+Important:
+- Expand forward checking?: Look at future semesters as well in addition to verifying current semester
 - Plot runtimes of different algorithms/heuristics
 - Compare runtimes theoretically
 - Testing
 - Report
+- Only generate 10 solutions total instead of generating all and choosing 10
+- Use the sources we cited in project proposal, since this is part of rubric
+X Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
+X For a user's input, only return ~5-10 schedules
+X Remove unnecessary columns from excel
+X Consolidate "remove from future" and "don't take after" columns
+	X E.g. after 121, don't take 50. Currently the 50's might be in wrong column 
+X When adding courses back at the end of csp.solve(), only add back to future semesters?
+X Combine "add_course" and "add_course_with_FC" methods, similar to is_complete() by passing in True from the FC version and making the default forward=False be an argument to the method
+X Decide about freeing future courses from unavailabe set vs. looking back at prereqs
+X MRV (maybe get info from sources?)
+X After assigning a course to semester i, branch out from there and look at future semesters in addition to trying to fulfill the remaining slots in semester i
 
 Maybe:
 - AC-3
@@ -36,4 +39,7 @@ Maybe:
 - Clean up OOP code (potentially put Semester class within CSP_Solver)
 - Honors concentration (just expand technical and breadth requirements)
 - Front end using Flask
+
+TF help:
+- Local search algorithm
 
