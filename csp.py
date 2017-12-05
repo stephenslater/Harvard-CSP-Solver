@@ -290,11 +290,16 @@ class CSP_Solver(object):
 
 		technical = (len((technical_1.union({'ES 50'})) & self.all) >= 4 or len((technical_1.union({'ES 52'})) & self.all) >= 4)
 
+		# Handle special cases where student takes all of CS 50/51/61 or ES 153
 		counter = 0
 		subject = ''
 		if all_3:
 			counter += 1
+		if 'ES 153' in self.all:
+			counter += 1
+			subject = '4'
 		
+		# if self.honors: 6 technical, 4 breadth
 		for c in self.all:
 			# Non honors requires 2 breadth courses of different subjects
 			if counter < 2:
@@ -304,7 +309,7 @@ class CSP_Solver(object):
 
 		breadth = (counter == 2)
 
-		# Don't check this here if we are using forward checking
+		# Only do this computation if we didn't forward check these constraints
 		if not self.heuristics:
 			#print "Not using forward checking"
 			for semester in range(1,9):
@@ -406,25 +411,30 @@ class CSP_Solver(object):
 
 		return lowest
 
-	# Return the least constraining value (course) to be assigned
+	# Return the least constraining value (course) to be assigned of available
+	# This should be called from order_domain_values
+	# The purpose is to choose a value from the available set that doesn't
+	# constrain other semesters' possibilities
 	def get_lcv(self):
 		pass
 		# LCV
 
 	# Use Min Remaining Value and Least Constraining Value heuristics
 	# Return multiple semesters from which to branch out: check
-	# Stop assigning courses when assignment is complete
+	# Stop assigning courses when assignment is complete:
 	def get_unassigned_var(self, state):
 
 		# MRV
 		if self.heuristics:
 			return self.get_mrv()
 
-		# Fill semesters
+		# Choose semesters in order
 		for semester in range(self.latest_sem + 1, 9):
 			if self.state[semester].course_count != self.state[semester].max_courses:
 				return [semester]
 		return None
+
+		# Choose a semester randomly
 
 		# Double branching
 		# for semester in range(self.latest_sem + 1, 9):
@@ -495,20 +505,20 @@ class CSP_Solver(object):
 										# 			self.state[n].available.remove(to_disable)
 										
 										# OLD VERSION
-										for q in range(semester + 1, 9):
+										for q in range(semester, 9):
 											for j in self.disable_future[value]:
 												if j in self.state[q].available:
 													self.state[q].available.remove(j)													
 
 										new_version = copy.deepcopy(self.state)
 										result = rec_backtrack(new_version)
-
+										# print "All: {}".format(self.all)
 										# self.state[semester].print_courses()
 										# print "Course to remove is {}".format(value)
 										self.state[semester].remove_course(value)
 
 										# Added this conditional to fix key error
-										#if value in self.all:
+										# if value in self.all:
 										self.all.remove(value)
 
 										# Add the course back for future options
@@ -518,7 +528,7 @@ class CSP_Solver(object):
 										# add back courses that we had disabled by taking value
 										# I think this should be range(semester, 9) instead?
 
-										# # NEW VERSION: 
+										# NEW VERSION: UPDATE: This breaks things
 										# for n in range(semester, 9):
 										# 	for prev_disabled in disable_future[value]:
 										# 		if n % 2 == 1:
@@ -529,7 +539,7 @@ class CSP_Solver(object):
 										# 				self.state[n].available.add(prev_disabled)
 
 										# OLD VERSION
-										for n in range(1, 9):
+										for n in range(semester, 9):
 											if n % 2 == 1:
 												if value in fall:
 													self.state[n].available.add(value)
@@ -556,6 +566,12 @@ class CSP_Solver(object):
 
 		return []
 
+	# If user inputs (Boolean) that they want to optimize on low workload,
+	# then we sort the domains by low workload before starting the CSP.
+	# This will require us to use lists for the domains instead of sets, which
+	# changes *a lot* of code. We could try different methods like getting
+	# courses frmo the domain and testing what their semester workload is and
+	# only branch out on the lowest semesters
 	def order_domain_values(self):
 
 		# Depending on heuristics, order vals by lowest workload, LCV, etc.
@@ -663,7 +679,7 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 25.0
 assignments = 2.0
-history = [] # [('CS 50', 1)] #, ('Stat 110', 3)]
+history = [('CS 50', 1)] #, ('Stat 110', 3)]
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history, heuristics=True)
 
@@ -717,9 +733,9 @@ for j in study_cards_with_H:
 			break
 	if not shared:
 		different.append(j)
-		# print "Non-H never found:"
-		# for k in range(1,9):
-		# 	j[k].print_courses()
+		print "Non-heuristic version never found:"
+		for k in range(1,9):
+			j[k].print_courses()
 
 # for count, d in enumerate(different):
 # 	print "\nUnfound Solution {}:".format(count + 1)
@@ -735,14 +751,18 @@ print "Difference is: {}".format(len(different))
 
 print "*********"
 
-k = 10 # Number of options to show user
-random.shuffle(study_cards_with_H)
-solutions = random.sample(study_cards_with_H, k)
+if not study_cards_with_H:
+	print "No solutions found. Try higher workload or lower q-score avg?"
+else:
+	print "*** Printing random solutions for user ***"
+	k = 10 # Number of options to show user
+	random.shuffle(study_cards_with_H)
+	solutions = random.sample(study_cards_with_H, k)
 
-for sol, plan in enumerate(solutions):
-	print "\nSolution {}:".format(sol + 1)
-	for j in plan:
-		plan[j].print_courses()
+	for sol, plan in enumerate(solutions):
+		print "\nSolution {}:".format(sol + 1)
+		for j in plan:
+			plan[j].print_courses()
 
 #print csp.seen_plans
 #print "Total seen plans: {}".format(len(csp.seen_plans))

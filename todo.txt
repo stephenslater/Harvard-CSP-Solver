@@ -3,7 +3,7 @@ Remaining tasks:
 Priority:
 X If user inputs history, then we need to remove all variables from the available set of previous semesters so that we don't try to add courses in the past that the user did not take
 X Don't create duplicate solutions
-- LCV 
+- LCV (started template but haven't coded anything)
 - Take user input about whether to optimize on q/w/a, combination, or none
 	- Complete order_domain_values() function to sort the domain (in list form) by lowest workload, etc.
 	- Shuffle values and choose randomly
@@ -12,7 +12,7 @@ X Don't create duplicate solutions
 
 Small:
 - Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
-- Handle ES 153 as a 140s course when checking for breadth
+X Handle ES 153 as a 140s course when checking for breadth
 
 Important:
 - Expand forward checking?: Look at future semesters as well in addition to verifying current semester
