@@ -12,6 +12,7 @@ X Don't create duplicate solutions
 
 Small:
 - Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
+- Don't count CS 20 as a technical
 X Handle ES 153 as a 140s course when checking for breadth
 
 Important:
