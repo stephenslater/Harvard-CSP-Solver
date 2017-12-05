@@ -753,50 +753,63 @@ def compare_plans(plan_a, plan_b):
 
 	return True
 
-overlaps = []
-different = []
-for j in study_cards_with_H:
-	shared = False
-	for i in study_cards:
-		shared = compare_plans(j, i)
-		if shared:
-			overlaps.append(j)
-			break
-	if not shared:
-		different.append(j)
-		print "Non-heuristic version never found:"
-		for k in range(1,9):
-			j[k].print_courses()
+# overlaps = []
+# different = []
+# for j in study_cards_with_H:
+# 	shared = False
+# 	for i in study_cards:
+# 		shared = compare_plans(j, i)
+# 		if shared:
+# 			overlaps.append(j)
+# 			break
+# 	if not shared:
+# 		different.append(j)
+# 		print "Non-heuristic version never found:"
+# 		for k in range(1,9):
+# 			j[k].print_courses()
 
 # for count, d in enumerate(different):
 # 	print "\nUnfound Solution {}:".format(count + 1)
 # 	for m in range(1,9):
 # 		d[m].print_courses()
 
+# Number of random solutions to generate
+k = 10
+if not study_cards:
+	print "No solutions found w/o heuristics. Try higher workload or lower q-score avg?"
+else:
+	print "*** Printing random solutions for user w/o heuristics ***"
+	random.shuffle(study_cards)
+	solutions = random.sample(study_cards, k)
+
+for sol, plan in enumerate(solutions):
+	print "\nSolution {}:".format(sol + 1)
+	for j in plan:
+		plan[j].print_courses()
+
 if not study_cards_with_H:
-	print "No solutions found. Try higher workload or lower q-score avg?"
-# else:
-# 	print "*** Printing random solutions for user ***"
-# 	k = len(study_cards) # Number of options to show user
-# 	random.shuffle(study_cards)
-# 	solutions = random.sample(study_cards, k)
+	print "No solutions found w/ heuristics. Try higher workload or lower q-score avg?"
+else:
+	print "*** Printing random solutions for user w/ heuristics ***"
+	random.shuffle(study_cards_with_H)
+	solutions_H = random.sample(study_cards_with_H, k)
 
-# 	for sol, plan in enumerate(solutions):
-# 		print "\nSolution {}:".format(sol + 1)
-# 		for j in plan:
-# 			plan[j].print_courses()
+for sol, plan in enumerate(solutions_H):
+	print "\nSolution {}:".format(sol + 1)
+	for j in plan:
+		plan[j].print_courses()
 
-for num, sol in enumerate(study_cards):
-	print "Non-heuristic solution {}:".format(num)
-	for r in range(1, 9):
-		sol[r].print_courses()
+# for num, sol in enumerate(study_cards):
+# 	print "Non-heuristic solution {}:".format(num)
+# 	for r in range(1, 9):
+# 		sol[r].print_courses()
 		
 print "Solutions w/o FC/MRV: {}".format(len(study_cards))
 print "Solutions w/  FC/MRV: {}".format(len(study_cards_with_H))
 # print "Overlaps should be: {}".format(len(study_cards))
-print "Total overlap is: {}".format(len(overlaps))
+# print "Total overlap is: {}".format(len(overlaps))
 # print "Difference should be: {}".format(len(study_cards_with_H) - len(study_cards))
-print "Difference is: {}".format(len(different))
+# print "Difference is: {}".format(len(different))
 
 print "*********"
 
