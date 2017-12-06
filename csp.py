@@ -226,7 +226,7 @@ class Semester(object):
 # See: https://stackoverflow.com/questions/1765677/nested-classes-scope
 #
 class CSP_Solver(object):
-	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history, must_take):
+	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history=[], must_take=[]):
 		self.fall, self.spring = variables
 		self.prereqs_to_courses, self.disable_future = constraints
 		self.n = num_classes
@@ -241,6 +241,7 @@ class CSP_Solver(object):
 		self.attempts = 0
 		self.seen_plans = set()
 		self.latest_sem = 0
+		self.state = None
 		self.theory_reqs = set(['CS 124', 'CS 126', 'CS 127', 'AM 106', 'AM 107'])
 		self.non_breadth_courses = set(['CS 96', 'CS 105', 'CS 108', 'CS 109A', 'CS 109B', \
 		    'Stat 110', 'Math 154', 'AM 106', 'AM 107', 'AM 120', 'AM 121', 'ES 153'])
@@ -289,21 +290,33 @@ class CSP_Solver(object):
 						if disabled in spring:
 							start[semester].available.remove(disabled)
 
-		# for course, semester in self.must_take:
-		# 	start[semester].assigned.add(course)
-		# 	self.all.add(course)
-		# 	start[semester].course_count += 1
-		# 	for s in range(1, 9):
-		# 		if course in start[s].available:
-		# 			start[s].available.remove(course)
-		# 	for j in range(semester, 9):
-		# 		for disabled in self.disable_future[course]:
-		# 			if n % 2 == 1:
-		# 				if disabled in fall:
-		# 					start[semester].available.remove(disabled)
-		# 			else:
-		# 				if disabled in spring:
-		# 					start[semester].available.remove(disabled)								
+		for course, semester in self.must_take:
+			if course in spring and course not in fall and semester % 2 == 1:	
+				print "\nSorry! {} is not offered in the fall.".format(course)
+				return None
+			elif course in fall and course not in spring and semester % 2 != 1:
+				print "\nSorry! {} is not offered in the spring.".format(course)
+				return None
+			elif courses_to_q[course][q] > self.max_w:
+				print "\nSorry! {} exceeds your max workload of {}.".format(course, self.max_w)
+				return None
+			start[semester].assigned.add(course)
+			self.all.add(course)
+			start[semester].course_count += 1
+			for s in range(1, 9):
+				if course in start[s].available:
+					start[s].available.remove(course)
+			for j in range(semester, 9):
+				for disabled in self.disable_future[course]:
+					if j % 2 == 1:
+						if disabled in fall:
+							start[j].available.remove(disabled)
+					else:
+						if disabled in spring:
+							start[j].available.remove(disabled)	
+		print "Starting out:"
+		for i in range(1, 9):
+			print "Semester {} available: {}".format(i, start[i].available)							
 
 		# print "Latest sem is {}".format(latest_sem)
 		# for sem in range(latest_sem):
@@ -347,9 +360,23 @@ class CSP_Solver(object):
 		# print "assignment.all: {}".format(assignment.all)
 		# print "assgnment state: {}".format(assignment.state)
 
-		# print "Printing potential solution"
-		# for k in range(1,9):
-		# 	assignment.state[k].print_courses()
+		print "Printing potential solution"
+		for k in range(1,9):
+			assignment.state[k].print_courses()
+
+		# If assignment doesn't meet minimum number of courses, fail-check early
+		if len(assignment.all) < 10: 
+			print "Too short"
+			return False
+
+		if self.must_take != []:
+			for course, semester in self.must_take:
+				prev_taken = assignment.get_previous(assignment.state, semester)
+				if not assignment.check_prereqs(assignment, course, semester, prev_taken):
+					return False
+				# reqs = self.prereqs_to_courses[course]
+			# make sure that courses before must take semester have necessary prereqs
+
 		courses_taken = copy.deepcopy(assignment.all)
 		basic_1 = set(['Math 1a', 'Math 1b', 'CS 20', 'Math 21b'])
 		basic_2 = set(['Math 1a', 'Math 1b', 'CS 20', 'AM 21b'])
@@ -412,9 +439,10 @@ class CSP_Solver(object):
 				technical_1 -= set(['CS 51'])
 			elif software_3 - courses_taken == set():
 				technical_1 -= set(['CS 61'])
+
 			if 'ES 50' in courses_taken:
 				technical_b = len((technical_1.union(set(['ES 50']))) & courses_taken) == 4 
-			elif 'ES 50' in courses_taken:
+			elif 'ES 52' in courses_taken:
 				technical_b = len((technical_1.union(set(['ES 52']))) & courses_taken) == 4
 			else:
 				technical_b = len(technical_1 & courses_taken) == 4
@@ -532,6 +560,10 @@ class CSP_Solver(object):
 		# 			return False
 		# 	return True
 
+	# def verify_must_take(self):
+	# 	self.state
+
+
 
 	# Look at all previous semesters when determining prereq satisfaction; no simultaneity allowed
 	def get_previous(self, current_state, semester, tuple_version = False):
@@ -543,6 +575,7 @@ class CSP_Solver(object):
 
 		else:
 			prev_courses = set()
+			# print "Semester is {}".format(semester)
 			for i in range(1, semester):
 				prev_courses = prev_courses.union(current_state[i].assigned)
 			return prev_courses	
@@ -642,10 +675,13 @@ class CSP_Solver(object):
 	# 			return False
 	# 	return True
 
-	def check_prereqs(self, assignment, course, semester):
+	def check_prereqs(self, assignment, course, semester, before_must={}):
 		# print "Checking prereqs for {} in semester {}".format(course, semester)
 
-		prev_courses = assignment.get_previous(assignment.state, semester)
+		if before_must != {}:
+			prev_courses = before_must
+		else:
+			prev_courses = assignment.get_previous(assignment.state, semester)
 
 		reqs = assignment.prereqs_to_courses[course]
 		if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
@@ -780,12 +816,12 @@ class CSP_Solver(object):
 	def get_unassigned_var(self, assignment):
 
 		# MRV
-		if self.heuristics:
-			return self.get_mrv(assignment)
+		# if self.heuristics:
+		# 	return self.get_mrv(assignment)
 
 		# Choose semesters in order
 		for semester in range(self.latest_sem + 1, 9):
-			if current_state[semester].course_count != current_state[semester].max_courses:
+			if assignment.state[semester].course_count != assignment.state[semester].max_courses:
 				return [semester]
 		return None
 
@@ -814,6 +850,27 @@ class CSP_Solver(object):
 		# 					return [semester, semester + 1]				
 		# 		return [semester]
 		# return None
+
+	# Enforce arc-consistency with AC-3 and propagate constraints
+	def AC3(csp, queue=None):
+	    if queue == None:
+	        queue = [(Xi, Xk) for Xi in csp.vars for Xk in csp.neighbors[Xi]]
+	    while queue:
+	        (Xi, Xj) = queue.pop()
+	        if remove_inconsistent_values(csp, Xi, Xj):
+	            for Xk in csp.neighbors[Xi]:
+	                queue.append((Xk, Xi))
+
+	def remove_inconsistent_values(csp, Xi, Xj):
+	    "Return true if we remove a value."
+	    removed = False
+	    for x in csp.curr_domains[Xi][:]:
+	        # If Xi=x conflicts with Xj=y for every possible y, eliminate Xi=x
+	        if every(lambda y: not csp.constraints(Xi, x, Xj, y),
+	                csp.curr_domains[Xj]):
+	            csp.curr_domains[Xi].remove(x)
+	            removed = True
+	    return removed
 
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
@@ -937,6 +994,13 @@ class CSP_Solver(object):
 						# here
 					return False
 
+		if self.state == None:
+			return []
+		
+		print "\nHistory: {}".format(self.history)
+		print "Must take: {}".format(self.must_take)
+		print "Fall: {}".format(self.fall)
+		print "Spring: {}".format(self.spring)
 		self.heuristics = heuristics
 		self.seen_plans = set()
 		self.num_solutions = 0
@@ -953,6 +1017,7 @@ class CSP_Solver(object):
 			return solutions
 
 		return []
+
 
 	# Returns solution(s) or failure message
 	# Pseudocode in L5: CSP I
@@ -1053,17 +1118,14 @@ variables = (fall, spring)
 constraints = courses_to_prereqs, disable_future
 classes_per_semester = 2
 q_score = 3.0
-workload = 25.0
+workload = 35.0
 assignments = 2.0
-history = [('CS 61', 1)] #[('CS 50', 1)] #, ('Stat 110', 3)]
+history = [] # [('CS 50', 1)] #[('CS 61', 1)] #[('CS 50', 1)] #, ('Stat 110', 3)]
+must_take = [('CS 161', 8)]
 optimizations = 'workload'
 
-csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
+csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history, must_take)
 
-
-print "\nHistory: {}".format(history)
-print "Fall: {}".format(fall)
-print "Spring: {}".format(spring)
 # t0 = time.time()
 # study_cards = csp.solve()
 # t1 = time.time()
