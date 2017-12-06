@@ -280,8 +280,30 @@ class CSP_Solver(object):
 			for s in range(1, 9):
 				if course in start[s].available:
 					start[s].available.remove(course)
+			for j in range(semester, 9):
+				for disabled in self.disable_future[course]:
+					if n % 2 == 1:
+						if disabled in fall:
+							start[semester].available.remove(disabled)
+					else:
+						if disabled in spring:
+							start[semester].available.remove(disabled)
 
-		for course, semester in self.must_take
+		# for course, semester in self.must_take:
+		# 	start[semester].assigned.add(course)
+		# 	self.all.add(course)
+		# 	start[semester].course_count += 1
+		# 	for s in range(1, 9):
+		# 		if course in start[s].available:
+		# 			start[s].available.remove(course)
+		# 	for j in range(semester, 9):
+		# 		for disabled in self.disable_future[course]:
+		# 			if n % 2 == 1:
+		# 				if disabled in fall:
+		# 					start[semester].available.remove(disabled)
+		# 			else:
+		# 				if disabled in spring:
+		# 					start[semester].available.remove(disabled)								
 
 		# print "Latest sem is {}".format(latest_sem)
 		# for sem in range(latest_sem):
@@ -1033,11 +1055,10 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 25.0
 assignments = 2.0
-history = [] #[('CS 50', 1)] #, ('Stat 110', 3)]
+history = [('CS 61', 1)] #[('CS 50', 1)] #, ('Stat 110', 3)]
 optimizations = 'workload'
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history)
-
 
 
 print "\nHistory: {}".format(history)
