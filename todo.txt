@@ -8,7 +8,7 @@ X LCV (started template but haven't coded anything)
 
 Small:
 - Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
-- Add to excel: after ES 50, don't take ES 52, and vice versa
+X Add to excel: after ES 50, don't take ES 52, and vice versa
 X Don't count CS 20 as a technical
 X Handle ES 153 as a 140s course when checking for breadth
 
@@ -31,7 +31,7 @@ X After assigning a course to semester i, branch out from there and look at futu
 X Expand forward checking?: Look at future semesters as well in addition to verifying current semester
 
 Maybe:
-- AC-3
+X AC-3
 - Local search algorithm
 - Clean up OOP code (potentially put Semester class within CSP_Solver)
 - Honors concentration (just expand technical and breadth requirements)

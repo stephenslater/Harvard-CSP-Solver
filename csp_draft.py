@@ -70,7 +70,7 @@ class Semester(object):
 			self.assigned.remove(potential_course)
 			# self.available.remove(potential_course) # Gets removed in solve() anyway
 			self.course_count -= 1
-			# print "Couldn't add {} to semester {}".format(potential_course, self.semester)
+			print "FC error: Couldn't add {} to semester {}".format(potential_course, self.semester)
 			
 			return False
 		# print "Adding {} to semester {}".format(potential_course, self.semester)
@@ -80,10 +80,13 @@ class Semester(object):
 	def neighbors(self):
 		return [k for k in range(1,9) if k != self.semester]
 
-	def add_course(self, assignment, course, heuristics=None):
-		# print "\nTrying to add {} to semester {}".format(course, self.semester)
+	def add_course(self, assignment, course, heuristics=None, second_math=False):
+		print "\nTrying to add {} to semester {}".format(course, self.semester)
 		if self.course_count < self.max_courses and \
 		   self.csp.check_prereqs(assignment, course, self.semester):
+			print "Satisfied prereqs for {} in semester {}".format(course, self.semester)
+
+			adv_maths = {'Math 23a', 'Math 23b', 'Math 25a', 'Math 25b', 'Math 55a', 'Math 55b'}
 			theory_reqs = set(['CS 124', 'CS 126', 'CS 127', 'AM 106', 'AM 107'])
 			non_breadth_courses = set(['CS 96', 'CS 105', 'CS 108', 'CS 109A', 'CS 109B', \
 			    'Stat 110', 'Math 154', 'AM 120', 'AM 121', 'ES 153'])
@@ -119,8 +122,8 @@ class Semester(object):
 			# if theory_fulfilled and non_breadth >= 3:
 				# print "Too many non-breadth"
 				# return False
-			if non_breadth >= 2 and theory_fulfilled: # or take off theory_fulfilled
-				# print "Too many non-breadth"
+			if non_breadth >= 2:
+				print "Too many non-breadth"
 				return False
 
 			# Don't take too many courses for breadth requirement
@@ -169,7 +172,9 @@ class Semester(object):
 				# Counter_a is a sum of non-theory non-breadth tech courses and
 				# number of unique penultimate breadth digits 
 				# If already fulfilled technical and breadth, don't add more
-				if counter_a >= 4 or counter_b >= 4: return False
+				if counter_a >= 4 or counter_b >= 4: 
+					print "Too many technical courses"
+					return False
 
 			else:
 				for c in courses_taken_a:
@@ -182,6 +187,7 @@ class Semester(object):
 
 				# Don't add another breadth course if we already have 4 technical
 				if counter_a >= 4 or len(courses_taken_a.union({'ES 153'}) & breadth_courses) >= 4: 
+					print "Too many technical courses and not all_3"
 					return False
 
 
@@ -208,17 +214,109 @@ class Semester(object):
 				if heuristics['fc'] and heuristics['ac']:
 					# Prune values in self.semester's domain that aren't consistent
 					assignment.ac3(assignment, [(Xk, self.semester) for Xk in self.neighbors()])
-					return self.forward_check(course)
+					if (course not in adv_maths) or second_math:
+						return self.forward_check(course)
+
+					if self.forward_check(course):
+						other = False
+						if course[-1] == 'a':
+							other_course = course[:-1] + 'b'
+							if assignment.state[self.semester + 1].course_count < assignment.state[self.semester + 1].max_courses:
+								other = assignment.state[self.semester + 1].add_course(assignment, other_course, second_math=True)
+						
+							if other:
+								# 2nd course to add is in spring, so start from semester 2
+								for q in range(2, 9):
+									for j in assignment.disable_future[other_course]:
+										if j in assignment.state[q].available:
+											assignment.state[q].available.remove(j)
+
+						elif course[-1] == 'b':
+							other_course = course[:-1] + 'a'
+							if assignment.state[self.semester - 1].course_count < assignment.state[self.semester - 1].max_courses:
+								other = assignment.state[self.semester - 1].add_course(assignment, other_course, second_math=True)
+						
+							if other:
+								# 2nd course to add is in fall, so start from semester 1
+								for q in range(1, 9):
+									for j in assignment.disable_future[other_course]:
+										if j in assignment.state[q].available:
+											assignment.state[q].available.remove(j)
+
+						return other
+					return False
 
 				# If only doing FC, then ensure course can be added
 				elif heuristics['fc']:
-					return self.forward_check(course)
+					if course not in adv_maths or second_math:
+						print "Going to try FC for {}".format(course)
+						return self.forward_check(course)
+
+					if self.forward_check(course):
+						other = False
+						if course[-1] == 'a':
+							other_course = course[:-1] + 'b'
+							if assignment.state[self.semester + 1].course_count < assignment.state[self.semester + 1].max_courses:
+								other = assignment.state[self.semester + 1].add_course(assignment, other_course, second_math=True)
+						
+							if other:
+								# 2nd course to add is in spring, so start from semester 2
+								for q in range(2, 9):
+									for j in assignment.disable_future[other_course]:
+										if j in assignment.state[q].available:
+											assignment.state[q].available.remove(j)
+
+						elif course[-1] == 'b':
+							other_course = course[:-1] + 'a'
+							if assignment.state[self.semester - 1].course_count < assignment.state[self.semester - 1].max_courses:
+								other = assignment.state[self.semester - 1].add_course(assignment, other_course, second_math=True)
+						
+							if other:
+								# 2nd course to add is in fall, so start from semester 1
+								for q in range(1, 9):
+									for j in assignment.disable_future[other_course]:
+										if j in assignment.state[q].available:
+											assignment.state[q].available.remove(j)
+
+						return other
+					return False
 
 				# If only doing AC, then prune from domain in this assignment
 				# any values that are inconsistent with other semesters
 				elif heuristics['ac']:
 					assignment.ac3([(Xk, self.semester) for Xk in self.neighbors()])
-					
+					if course in adv_maths or second_math:
+						if course[-1] == 'a':
+							other_course = course[:-1] + 'b'
+							assignment.ac3([(Xk, self.semester + 1) for Xk in self.neighbors()])
+							assignment.state[self.semester + 1].assigned.add(other_course)
+							assignment.state[self.semester + 1].course_count += 1
+							assignment.all.add(other_course)
+		
+							# 2nd course to add is in spring, so start from semester 2
+							for q in range(2, 9):
+								for j in assignment.disable_future[other_course]:
+									if j in assignment.state[q].available:
+										assignment.state[q].available.remove(j)
+
+						elif course[-1] == 'b':
+							other_course = course[:-1] + 'a'
+							assignment.ac3([(Xk, self.semester - 1) for Xk in self.neighbors()])
+							assignment.state[self.semester - 1].assigned.add(other_course)
+							assignment.state[self.semester - 1].course_count += 1
+
+							# 2nd course to add is in fall, so start from semester 1
+							for q in range(1, 9):
+								for j in assignment.disable_future[other_course]:
+									if j in assignment.state[q].available:
+										assignment.state[q].available.remove(j)
+
+						assignment.all.add(other_course)
+						for s in range(1, 9):
+							if value in assignment.state[s].available:
+								assignment.state[s].available.remove(other_course)
+
+
 			# and self.forward_check(course):
 			# 	if self.csp.verify_technicals(assignment, self.semester, course):
 			# 		self.assigned.add(course)
@@ -226,12 +324,19 @@ class Semester(object):
 			# 		return True				
 
 			# if self.csp.verify_technicals(assignment, self.semester, course):
+			# if self.forward_check(course):
+			# 	other = False
+			# 	if course[-1] == 'a':
+			# 		if assignment.state[self.semester + 1].course_count < assignment.state[self.semester + 1].max_courses:
+			# 			other = assignment.state[self.semester + 1].add_course(assignment, course[:-1] + 'b')
+			# 	elif course[-1] == 'b':
+			# 		if assignment.state[self.semester - 1].course_count < assignment.state[self.semester - 1].max_courses:
+			# 			other = assignment.state[self.semester - 1].add_course(assignment, course[:-1] + 'a')
+			# 	return other
+			print "Now adding {} to semester {}".format(course, self.semester)
 			self.assigned.add(course)
 			self.course_count += 1
 			return True	
-
-
-
 
 			# if heuristics and self.forward_check(course):
 			# 	if self.csp.verify_technicals(assignment, self.semester, course):
@@ -355,7 +460,8 @@ class CSP_Solver(object):
 		self.all = set()
 		self.priors = priors
 		self.num_solutions = 0
-		self.sol_counter = 0
+		self.iterations = 0
+		self.t_start = 0
 		self.attempts = 0
 		self.seen_plans = set()
 		self.latest_sem = 0
@@ -367,6 +473,17 @@ class CSP_Solver(object):
 		    'CS 146', 'CS 148', 'CS 152', 'CS 153', 'CS 161', 'CS 165', 'CS 171', 'CS 175', \
 		    'CS 179', 'CS 181', 'CS 182', 'CS 189', 'ES 153'])
 		maths = {'Math 1a', 'Math 1b', 'Math 23a', 'Math 23b', 'Math 25a', 'Math 25b', 'Math 55a', 'Math 55b'} 
+
+		if 'adv_math' in self.priors:
+			self.fall -= {'Math 1a', 'Math 1b'}
+			self.spring -= {'Math 1a', 'Math 1b'}
+
+		if 'prior_math' in self.priors:
+			self.fall -= {'Math 1a', 'Math 1b'}
+			self.spring -= {'Math 1a', 'Math 1b'}
+			for level in {'Math 21a', 'Math 21b', 'AM 21a', 'AM 21b'}:
+				self.courses_to_prereqs[level] = {strict: {one_of: set(), all_of: set()}, recommended: {one_of: set(), all_of: set()}}
+
 		# self.technical_courses = set(['CS 51', 'CS 61', 'CS 96', 'CS 105', 'CS 108', \
 		# 	'CS 109A', 'CS 109B', 'CS 124', 'CS 126', 'CS 127', 'CS 134', 'CS 136', \
 		# 	'CS 141', 'CS 143', 'CS 144R', 'CS 148', 'CS 152', 'CS 161', 'CS 165', \
@@ -389,17 +506,6 @@ class CSP_Solver(object):
 				 7: Semester(self.fall - maths, 7, specified), 
 				 8: Semester(self.spring - maths, 8, specified) 
 			}
-
-		if 'adv_math' in self.priors:
-			self.fall -= {'Math 1a', 'Math 1b'}
-			self.spring -= {'Math 1a', 'Math 1b'}
-
-		if 'prior_math' in self.priors:
-			self.fall -= {'Math 1a', 'Math 1b'}
-			self.spring -= {'Math 1a', 'Math 1b'}
-			for level in {'Math 21a', 'Math 21b', 'AM 21a', 'AM 21b'}:
-				self.courses_to_prereqs[level] = {strict: {one_of: set(), all_of: set()}, recommended: {one_of: set(), all_of: set()}}
-
 
 		# Populate state with classes user has already taken; remove them from future
 		# latest_sem = 0
@@ -528,9 +634,17 @@ class CSP_Solver(object):
 		# print "assignment.all: {}".format(assignment.all)
 		# print "assgnment state: {}".format(assignment.state)
 
-		# print "\nPrinting potential solution"
-		# for k in range(1,9):
-		# 	assignment.state[k].print_courses()
+		# self.iterations += 1
+		print "\nIteration: {}".format(self.iterations)
+
+		# time_diff = time.time() - self.t_start
+		# print "Time diff: {}".format(time_diff)
+		# if time_diff > 20
+
+
+		print "Printing potential solution"
+		for k in range(1,9):
+			assignment.state[k].print_courses()
 
 		# If assignment doesn't meet minimum number of courses, fail-check early
 		if len(assignment.all) < 10: 
@@ -900,7 +1014,7 @@ class CSP_Solver(object):
 		   	# print "Yes\n"
 		   	return True
 			# return assignment.verify_technicals(assignment, course)
-		# print "No\n"
+		print "We don't have the prereqs to take {} in semester {}".format(course, semester)
 		return False
 
 	# Return the variable with the minimum positive # of remaining values
@@ -921,7 +1035,7 @@ class CSP_Solver(object):
 					if 0 < size < minimum:
 						minimum = size
 						lowest = [i]
-
+		print "Returning variable: {}".format(lowest)
 		return lowest
 
 	# Return the least constraining value (course) to be assigned of available
@@ -1007,12 +1121,15 @@ class CSP_Solver(object):
 
 		# MRV
 		if self.heuristics['mrv']:
+
 			return self.get_mrv(assignment)
 
 		# Choose semesters in order
 		for semester in range(self.latest_sem + 1, 9):
 			if assignment.state[semester].course_count != assignment.state[semester].max_courses:
+				print "Returning semester {}".format(semester)
 				return [semester]
+		print "Returning None"
 		return None
 
 		# Choose a semester randomly
@@ -1108,23 +1225,28 @@ class CSP_Solver(object):
 			# Number of function calls, used to compare algorithms
 
 			self.attempts += 1
+			self.iterations += 1
 			if self.is_complete(assignment):
 				self.num_solutions += 1
 				# print "Incremening assignment.sol_counter"
 				# print "Assignment.sol_counter was {}".format(assignment.sol_counter)
-				self.sol_counter += 1
+				# self.sol_counter += 1
+				# self.iterations += 1
 				# print "Assignment.sol_counter is {}".format(assignment.sol_counter)
+				print self.num_solutions
 				solutions.append(assignment.state)
+				# for _ in range(50):
+				# 	print "*"
 				print "Solution {}".format(self.num_solutions)
 				for i in range(1, 9):
 					assignment.state[i].print_courses()
-				if self.sol_counter == 1:
-					print "Reached max for this tree."
-					# return
-				if self.num_solutions == 10:
-					print "REACHED MAX NUMBER OF SOLUTIONS!!!"
-					#raise ValueError("Reached max number of desired solutions")
-
+				# if self.sol_counter == 1:
+				# 	print "Reached max for this tree."
+				# 	# return
+				# if self.num_solutions == 10:
+				# 	print "REACHED MAX NUMBER OF SOLUTIONS!!!"
+				# 	#raise ValueError("Reached max number of desired solutions")
+				return
 				# return self.num_solutions
 				# if assignment.sol_counter == 5:
 				# 	return assignment.sol_counter
@@ -1135,10 +1257,12 @@ class CSP_Solver(object):
 				# 		assignment.state[i].print_courses()
 				# else:
 				# Gets next semesters needing additional courses
+				print "Calling get_unassigned var"
 				semesters = self.get_unassigned_var(assignment)
 				# print "Unassigned semesters are {}".format(semesters)
 				if semesters:
 					for semester in semesters:
+						print "Current variable: {}".format(semester)
 						# Wrapper to avoid key error
 						# all_vals = assignment.state[semester].available.union(assignment.state[semester].assigned)
 						all_vals = copy.deepcopy(assignment.state[semester].available)
@@ -1155,6 +1279,7 @@ class CSP_Solver(object):
 						# if global counter == something: quit
 
 						for value in self.order_domain_values(all_vals):
+							# self.iterations += 1
 							# print "Next up: {} for semester {}".format(value, semester)
 							# assignment.sol_counter = 0
 							# Class is available to be assigned
@@ -1205,8 +1330,15 @@ class CSP_Solver(object):
 										# 	print "Continuing on from {} at semester {}".format(value, semester)
 										# 	continue
 
-										if self.num_solutions == 500:
-											break
+
+										# print "t_start is {}".format(self.t_start)
+										if self.num_solutions >= 3 or self.iterations > 2000:
+											# print "num_solutions is {}, iterations is {}".format(self.num_solutions, self.iterations)
+											# for _ in range(3):
+											# 	print "*"
+											# print "Restarting"
+											# break
+											return
 
 										# print "We're about to copy and the sol_counter is {}".format(assignment.sol_counter)
 										new_version = copy.deepcopy(assignment)
@@ -1218,7 +1350,7 @@ class CSP_Solver(object):
 
 										# print "All: {}".format(self.all)
 										# self.state[semester].print_courses()
-										# print "Course to remove is {}".format(value)
+										print "Course to remove is {}".format(value)
 										assignment.state[semester].remove_course(value)
 
 										# Added this conditional to fix key error
@@ -1254,15 +1386,22 @@ class CSP_Solver(object):
 									# print "Before calls: {}".format(temp)
 									# print "After calls: {}".format(assignment.state[semester].assigned)
 									else:
+										print "Couldn't add course {} to semester {}".format(value, semester)
 										# if count == count_all_vals - 1:
 										if tries == count_available:
+
 											if len(assignment.state[semester].assigned) < assignment.state[semester].max_courses:
+												print "About to backtrack again"
 												new_version = copy.deepcopy(assignment)
 												new_version.state[semester].max_courses = new_version.state[semester].course_count
 												rec_backtrack(new_version)
 						break
 						# here
-					return False
+					print "Checking end of loop"
+					# return False
+				print "No unassigned vars found"
+				return False
+			return
 
 		if self.state == None:
 			return []
@@ -1273,12 +1412,13 @@ class CSP_Solver(object):
 		print "Spring: {}".format(self.spring)
 		self.heuristics = heuristics
 		self.seen_plans = set()
-		self.num_solutions = 0
+		# self.num_solutions = 0
 		self.attempts = 0
 		solutions = []
 
 		# Begin recursive calls to DFS over possible assignments
-		begin = copy.deepcopy(self)
+		# begin = copy.deepcopy(self)
+		temp = copy.deepcopy(self)
 
 		# first_var = self.get_unassigned_var(begin)
 
@@ -1303,8 +1443,22 @@ class CSP_Solver(object):
 		# 		# if global counter == something: quit
 
 		# 		for value in self.order_domain_values(all_vals):
+		batches = 0
+		# while batches < 5:
+		for i in range(20):
+			print "\nGrand iteration {}".format(i+1)
+			print "Num_solutions: {}".format(self.num_solutions)
+			# if self.num_solutions > 0:
+			# 	batches += 1
 
-		rec_backtrack(begin)
+			self.num_solutions = 0
+			# rec_backtrack(begin)
+			self.iterations = 0
+			# self.t_start = time.time()
+			begin = copy.deepcopy(temp)
+			# for i in range(1,9):
+			# 	print "Semester {}, max courses {}".format(i, begin.state[i].max_courses)
+			rec_backtrack(begin)
 
 		# After exhausting all possible assignments
 		if len(solutions) != 0:
@@ -1425,7 +1579,7 @@ history = [] #[(2, 'CS 181')] # [(1, 'CS 50'), (1, 'Math 21a'), (2, 'CS 20'), (2
 must_take = [] #[(6, 'CS 161')]
 priors = {'prior_cs', 'prior_math', 'adv_math'}
 optimizations = 'workload'
-heuristics = {'mrv': False, 'lcv': False, 'fc': True, 'ac': False}
+heuristics = {'mrv': True, 'lcv': False, 'fc': True, 'ac': False}
 
 csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history, must_take, priors)
 

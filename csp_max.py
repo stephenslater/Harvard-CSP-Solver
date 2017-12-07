@@ -119,7 +119,7 @@ class Semester(object):
 			# if theory_fulfilled and non_breadth >= 3:
 				# print "Too many non-breadth"
 				# return False
-			if non_breadth >= 2 and theory_fulfilled: # or take off theory_fulfilled
+			if non_breadth >= 2:
 				# print "Too many non-breadth"
 				return False
 
@@ -344,7 +344,7 @@ class Semester(object):
 class CSP_Solver(object):
 	def __init__(self, variables, constraints, num_classes, q_score, workload, assignments, history=[], must_take=[], priors=set()):
 		self.fall, self.spring = variables
-		self.courses_to_prereqs, self.disable_future = constraints
+		self.prereqs_to_courses, self.disable_future = constraints
 		self.n = num_classes
 		self.history = history
 		self.must_take = must_take
@@ -380,26 +380,15 @@ class CSP_Solver(object):
 		# A plan of study for 8 semesters
 		# Each semester has max n concentration courses
 		# In each semester, we store sets of assigned, available, and unavailable courses
-		start = {1: Semester((self.fall - {'CS 191'} - self.breadth_courses - self.non_breadth_courses).union({'Stat 110'}), 1, (2, q_score, workload, assignments, constraints[0], self)), 
-				 2: Semester((self.spring - {'CS 191'} - self.breadth_courses - self.non_breadth_courses).union({'Stat 110'}), 2, specified),
-				 3: Semester(self.fall - maths - {'CS 191'}, 3, specified), 
-				 4: Semester(self.spring - maths - {'CS 191'}, 4, specified),
-				 5: Semester(self.fall - maths, 5, specified), 
-				 6: Semester(self.spring - maths, 6, specified),
-				 7: Semester(self.fall - maths, 7, specified), 
-				 8: Semester(self.spring - maths, 8, specified) 
+		start = {1: Semester(fall - {'CS 191'}, 1, (2, q_score, workload, assignments, constraints[0], self)), 
+				 2: Semester(spring - {'CS 191'}, 2, specified),
+				 3: Semester(fall - maths - {'CS 191'}, 3, specified), 
+				 4: Semester(spring - maths - {'CS 191'}, 4, specified),
+				 5: Semester(fall - maths, 5, specified), 
+				 6: Semester(spring - maths, 6, specified),
+				 7: Semester(fall - maths, 7, specified), 
+				 8: Semester(spring - maths, 8, specified) 
 			}
-
-		if 'adv_math' in self.priors:
-			self.fall -= {'Math 1a', 'Math 1b'}
-			self.spring -= {'Math 1a', 'Math 1b'}
-
-		if 'prior_math' in self.priors:
-			self.fall -= {'Math 1a', 'Math 1b'}
-			self.spring -= {'Math 1a', 'Math 1b'}
-			for level in {'Math 21a', 'Math 21b', 'AM 21a', 'AM 21b'}:
-				self.courses_to_prereqs[level] = {strict: {one_of: set(), all_of: set()}, recommended: {one_of: set(), all_of: set()}}
-
 
 		# Populate state with classes user has already taken; remove them from future
 		# latest_sem = 0
@@ -528,9 +517,9 @@ class CSP_Solver(object):
 		# print "assignment.all: {}".format(assignment.all)
 		# print "assgnment state: {}".format(assignment.state)
 
-		# print "\nPrinting potential solution"
-		# for k in range(1,9):
-		# 	assignment.state[k].print_courses()
+		print "\nPrinting potential solution"
+		for k in range(1,9):
+			assignment.state[k].print_courses()
 
 		# If assignment doesn't meet minimum number of courses, fail-check early
 		if len(assignment.all) < 10: 
@@ -681,8 +670,8 @@ class CSP_Solver(object):
 		# If everything else satisfied, make sure we aren't taking too many classes
 		# We attempted to forward-check this, but things got messy with recursion and
 		# adding and removing from available domains at different semesters
-		# if math and software and theory and technical and breadth:
-		# 	print "^^^SOLUTION^^^"
+		if math and software and theory and technical and breadth:
+			print "^^^SOLUTION^^^"
 		return math and software and theory and technical and breadth
 		# if math and software and theory and technical and breadth:
 		# 	all_courses = copy.deepcopy(assignment.all)
@@ -871,7 +860,7 @@ class CSP_Solver(object):
 		else:
 			prev_courses = assignment.get_previous(assignment.state, semester)
 
-		reqs = assignment.courses_to_prereqs[course]
+		reqs = assignment.prereqs_to_courses[course]
 		if len(reqs[strict][one_of]) == 0 and len(reqs[strict][all_of]) == 0 and \
 		   len(reqs[recommended][one_of]) == 0 and len(reqs[recommended][all_of]) == 0:
 		   	# print "Yes\n"
@@ -1110,10 +1099,10 @@ class CSP_Solver(object):
 			self.attempts += 1
 			if self.is_complete(assignment):
 				self.num_solutions += 1
-				# print "Incremening assignment.sol_counter"
-				# print "Assignment.sol_counter was {}".format(assignment.sol_counter)
+				print "Incremening assignment.sol_counter"
+				print "Assignment.sol_counter was {}".format(assignment.sol_counter)
 				self.sol_counter += 1
-				# print "Assignment.sol_counter is {}".format(assignment.sol_counter)
+				print "Assignment.sol_counter is {}".format(assignment.sol_counter)
 				solutions.append(assignment.state)
 				print "Solution {}".format(self.num_solutions)
 				for i in range(1, 9):
@@ -1129,140 +1118,139 @@ class CSP_Solver(object):
 				# if assignment.sol_counter == 5:
 				# 	return assignment.sol_counter
 			else:
-				# if self.sol_counter == 1:
-				# 	print "Found a solution:"
-				# 	for i in range(1, 9):
-				# 		assignment.state[i].print_courses()
-				# else:
-				# Gets next semesters needing additional courses
-				semesters = self.get_unassigned_var(assignment)
-				# print "Unassigned semesters are {}".format(semesters)
-				if semesters:
-					for semester in semesters:
-						# Wrapper to avoid key error
-						# all_vals = assignment.state[semester].available.union(assignment.state[semester].assigned)
-						all_vals = copy.deepcopy(assignment.state[semester].available)
+				while self.num_solutions != 10:
+					# print "Starting at top of while loop."
+					# Gets next semesters needing additional courses
+					semesters = self.get_unassigned_var(assignment)
+					# print "Unassigned semesters are {}".format(semesters)
+					if semesters:
+						for semester in semesters:
+							# Wrapper to avoid key error
+							# all_vals = assignment.state[semester].available.union(assignment.state[semester].assigned)
+							all_vals = copy.deepcopy(assignment.state[semester].available)
 
-						# count_all_vals = len(all_vals)
-						# Iterates through every candidate class
-						# temp = assignment.state[semester].assigned
+							# count_all_vals = len(all_vals)
+							# Iterates through every candidate class
+							# temp = assignment.state[semester].assigned
 
-						tries = 0
-						count_available = len(assignment.state[semester].available)
+							tries = 0
+							count_available = len(assignment.state[semester].available)
 
-						# Kick off |all_vals| # of recursive calls
-						# keep a global counter of how many solutions
-						# if global counter == something: quit
+							# Kick off |all_vals| # of recursive calls
+							# keep a global counter of how many solutions
+							# if global counter == something: quit
 
-						for value in self.order_domain_values(all_vals):
-							# print "Next up: {} for semester {}".format(value, semester)
-							# assignment.sol_counter = 0
-							# Class is available to be assigned
-							if value in assignment.state[semester].available:
-								tries += 1
-								# current = assignment.state[semester].assigned
-								# current.add(value)
-								# temp_assigned = tuple(current)
-								temp_assigned = tuple(assignment.state[semester].assigned.union(set([value])))
-								# Checks for duplicate semesters
-								if not self.already_computed(assignment.state, semester, temp_assigned):
-									if assignment.state[semester].add_course(assignment, value, heuristics):
-										assignment.all.add(value)
+							for value in self.order_domain_values(all_vals):
+								# print "\nNext up: {} for semester {}".format(value, semester)
+								# assignment.sol_counter = 0
+								# Class is available to be assigned
+								if value in assignment.state[semester].available:
+									tries += 1
+									# current = assignment.state[semester].assigned
+									# current.add(value)
+									# temp_assigned = tuple(current)
+									temp_assigned = tuple(assignment.state[semester].assigned.union(set([value])))
+									# Checks for duplicate semesters
+									if not self.already_computed(assignment.state, semester, temp_assigned):
+										if assignment.state[semester].add_course(assignment, value, heuristics):
+											assignment.all.add(value)
 
-										# Removes this class from all future semesters
-										# if self.technical == 4 or self.non_breadth == 2:
-										# 	for s in range(semester, 9):
-										# 		if value in assignment.state[s].available:
-										# 			assignment.state[s].available.remove(value)
-										# 		assignment.state[s].available
-										# else:
-										for s in range(1, 9):
-											if value in assignment.state[s].available:
-												assignment.state[s].available.remove(value)
-											# remove non_breadth courses if reached 2 or if technical is 4
+											# Removes this class from all future semesters
+											# if self.technical == 4 or self.non_breadth == 2:
+											# 	for s in range(semester, 9):
+											# 		if value in assignment.state[s].available:
+											# 			assignment.state[s].available.remove(value)
+											# 		assignment.state[s].available
+											# else:
+											for s in range(1, 9):
+												if value in assignment.state[s].available:
+													assignment.state[s].available.remove(value)
+												# remove non_breadth courses if reached 2 or if technical is 4
 
-										# Don't want to allow for taking courses simultaneously?
-										# I.e. if Math 21a disabled AM 21a in the future,
-										# We want to disable AM21a from right now as well
-										# So we can maybe change this to be in range(semester, 9) --> CHANGE MADE -m
-										
-										# NEW VERSION: Remove disabled courses from this and future semesters
-										# for n in range(semester, 9):
-										# 	for to_disable in disable_future[value]:
-										# 		if to_disable in self.state[n].available:
-										# 			self.state[n].available.remove(to_disable)
-										
-										# OLD VERSION
-										for q in range(semester, 9):
-											for j in assignment.disable_future[value]:
-												if j in assignment.state[q].available:
-													assignment.state[q].available.remove(j)													
+											# Don't want to allow for taking courses simultaneously?
+											# I.e. if Math 21a disabled AM 21a in the future,
+											# We want to disable AM21a from right now as well
+											# So we can maybe change this to be in range(semester, 9) --> CHANGE MADE -m
+											
+											# NEW VERSION: Remove disabled courses from this and future semesters
+											# for n in range(semester, 9):
+											# 	for to_disable in disable_future[value]:
+											# 		if to_disable in self.state[n].available:
+											# 			self.state[n].available.remove(to_disable)
+											
+											# OLD VERSION
+											for q in range(semester, 9):
+												for j in assignment.disable_future[value]:
+													if j in assignment.state[q].available:
+														assignment.state[q].available.remove(j)													
 
-										# print "Counter is {}".format(assignment.sol_counter)
-										# if self.sol_counter == 1:
-										# 	print "Just added {} to semester {}".format(value, semester)
-										# 	self.sol_counter = 0
-										# 	print "Continuing on from {} at semester {}".format(value, semester)
-										# 	continue
+											# print "Counter is {}".format(assignment.sol_counter)
+											if self.sol_counter == 1:
+												self.sol_counter = 0
+												print "Breaking out of for loop"
+												# print "Continuing on from {} at semester {}".format(value, semester)
+												break
 
-										if self.num_solutions == 500:
-											break
+											if self.num_solutions == 10:
+												break
 
-										# print "We're about to copy and the sol_counter is {}".format(assignment.sol_counter)
-										new_version = copy.deepcopy(assignment)
-										# print "We just copied and the sol_counter is {}".format(new_version.sol_counter)
-											#break
-										result = rec_backtrack(new_version)
-										# if result == 1:
-										# 	break
+											# print "We're about to copy and the sol_counter is {}".format(assignment.sol_counter)
+											new_version = copy.deepcopy(assignment)
+											# print "We just copied and the sol_counter is {}".format(new_version.sol_counter)
+												#break
+											result = rec_backtrack(new_version)
+											# if result == 1:
+											# 	break
 
-										# print "All: {}".format(self.all)
-										# self.state[semester].print_courses()
-										# print "Course to remove is {}".format(value)
-										assignment.state[semester].remove_course(value)
+											# print "All: {}".format(self.all)
+											# self.state[semester].print_courses()
+											# print "Course to remove is {}".format(value)
+											assignment.state[semester].remove_course(value)
 
-										# Added this conditional to fix key error
-										# if value in self.all:
-										assignment.all.remove(value)
+											# Added this conditional to fix key error
+											# if value in self.all:
+											assignment.all.remove(value)
 
-										# assignment.settle_disabled(assignment, semester, value)
-										# Free up the course for other semesters since we removed it
-										for n in range(1, 9):
-											if n % 2 == 1:
-												if value in fall:
-													assignment.state[n].available.add(value)
-											else:
-												if value in spring:
-													assignment.state[n].available.add(value)
-										# Add the course back for future options
-										# Only add it back to its valid semester(s),
-										# since some courses are offered fall and spring
-										# In addition to adding back "value", we should
-										# add back courses that we had disabled by taking value
-										# I think this should be range(semester, 9) instead?
+											# assignment.settle_disabled(assignment, semester, value)
+											# Free up the course for other semesters since we removed it
+											for n in range(1, 9):
+												if n % 2 == 1:
+													if value in fall:
+														assignment.state[n].available.add(value)
+												else:
+													if value in spring:
+														assignment.state[n].available.add(value)
+											# Add the course back for future options
+											# Only add it back to its valid semester(s),
+											# since some courses are offered fall and spring
+											# In addition to adding back "value", we should
+											# add back courses that we had disabled by taking value
+											# I think this should be range(semester, 9) instead?
 
-										# NEW VERSION: UPDATE: This breaks things
-										# for n in range(semester, 9):
-										# 	for prev_disabled in disable_future[value]:
-										# 		if n % 2 == 1:
-										# 			if prev_disabled in fall:
-										# 				assignment.state[n].available.add(prev_disabled)
-										# 		else:
-										# 			if prev_disabled in spring:
-										# 				assignment.state[n].available.add(prev_disabled)
-						
-									# print "Before calls: {}".format(temp)
-									# print "After calls: {}".format(assignment.state[semester].assigned)
-									else:
-										# if count == count_all_vals - 1:
-										if tries == count_available:
-											if len(assignment.state[semester].assigned) < assignment.state[semester].max_courses:
-												new_version = copy.deepcopy(assignment)
-												new_version.state[semester].max_courses = new_version.state[semester].course_count
-												rec_backtrack(new_version)
-						break
-						# here
-					return False
+											# NEW VERSION: UPDATE: This breaks things
+											# for n in range(semester, 9):
+											# 	for prev_disabled in disable_future[value]:
+											# 		if n % 2 == 1:
+											# 			if prev_disabled in fall:
+											# 				assignment.state[n].available.add(prev_disabled)
+											# 		else:
+											# 			if prev_disabled in spring:
+											# 				assignment.state[n].available.add(prev_disabled)
+							
+										# print "Before calls: {}".format(temp)
+										# print "After calls: {}".format(assignment.state[semester].assigned)
+										else:
+											# if count == count_all_vals - 1:
+											if tries == count_available:
+												if len(assignment.state[semester].assigned) < assignment.state[semester].max_courses:
+													new_version = copy.deepcopy(assignment)
+													new_version.state[semester].max_courses = new_version.state[semester].course_count
+													rec_backtrack(new_version)
+							# break
+							# here
+						# return False
+				print "Exited while loop"
+				return False
 
 		if self.state == None:
 			return []
@@ -1421,8 +1409,8 @@ classes_per_semester = 2
 q_score = 3.0
 workload = 35.0
 assignments = 2.0
-history = [] #[(2, 'CS 181')] # [(1, 'CS 50'), (1, 'Math 21a'), (2, 'CS 20'), (2, 'CS 51')] #[('CS 61', 1)] #[('CS 50', 1)] #, ('Stat 110', 3)]
-must_take = [] #[(6, 'CS 161')]
+history = [(2, 'CS 181')] # [(1, 'CS 50'), (1, 'Math 21a'), (2, 'CS 20'), (2, 'CS 51')] #[('CS 61', 1)] #[('CS 50', 1)] #, ('Stat 110', 3)]
+must_take = [(6, 'CS 161')]
 priors = {'prior_cs', 'prior_math', 'adv_math'}
 optimizations = 'workload'
 heuristics = {'mrv': False, 'lcv': False, 'fc': True, 'ac': False}
@@ -1499,17 +1487,17 @@ for sol, plan in enumerate(study_cards_with_H):
 	for j in plan:
 		plan[j].print_courses()
 
-if not study_cards_with_H:
-	print "No solutions found w/ heuristics. Try higher workload or lower q-score avg?"
-else:
-	print "*** Printing random solutions for user w/ heuristics ***"
-	random.shuffle(study_cards_with_H)
-	solutions_H = random.sample(study_cards_with_H, k)
+# if not study_cards_with_H:
+# 	print "No solutions found w/ heuristics. Try higher workload or lower q-score avg?"
+# else:
+# 	print "*** Printing random solutions for user w/ heuristics ***"
+# 	random.shuffle(study_cards_with_H)
+# 	solutions_H = random.sample(study_cards_with_H, k)
 
-	for sol, plan in enumerate(solutions_H):
-		print "\nSolution {}:".format(sol + 1)
-		for j in plan:
-			plan[j].print_courses()
+# 	for sol, plan in enumerate(solutions_H):
+# 		print "\nSolution {}:".format(sol + 1)
+# 		for j in plan:
+# 			plan[j].print_courses()
 
 # for num, sol in enumerate(study_cards):
 # 	print "Non-heuristic solution {}:".format(num)

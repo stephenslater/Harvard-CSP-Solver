@@ -12,12 +12,6 @@ recommended = 'recommended'
 one_of = 'one of'
 all_of = 'all of'
 
-# Q-score, workload, assignments, title
-q = 'q'
-w = 'w'
-a = 'a'
-t = 't'
-
 # Dictionary mapping courses to their Q-scores
 courses_to_q = dict()
 
@@ -67,10 +61,10 @@ def storeQdata(filename):
 			# Stores Q-scores
 			course = row[0]
 			courses_to_q[course] = dict()
-			courses_to_q[course][q] = q_helper(row[2])
-			courses_to_q[course][w] = q_helper(row[3])
-			courses_to_q[course][a] = q_helper(row[4])
-			courses_to_q[course][t] = row[5]
+			courses_to_q[course]['q'] = q_helper(row[2])
+			courses_to_q[course]['w'] = q_helper(row[3])
+			courses_to_q[course]['a'] = q_helper(row[4])
+			courses_to_q[course]['t'] = row[5]
 
 			# Stores Fall or Spring class
 			if row[1] == "Fall":
