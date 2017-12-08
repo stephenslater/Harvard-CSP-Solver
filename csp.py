@@ -95,33 +95,6 @@ class Semester(object):
 
 			if course is not 'CS 121' and course not in math_reqs:
 
-			# if course in non_breadth_courses or (course in theory_reqs and theory_fulfilled):
-				# if theory_fulfilled:
-				# 	return False
-				# if fulfilled theory and don't have enough breadth penultimates, don't add
-				# a non-breadth non-theory-counting technical course
-				# if theory_fulfilled and counter_a - non_breadth < 2:
-				# 	return False
-				# If we haven't taken enough breadth courses of unique categories,
-				# then don't add any more non-theory, non-breadth technical courses
-				# if counter_a - non_breadth < 2 and counter_b - non_breadth < 2 and not theory_fulfilled:
-					# if it fulfils theory, take it
-
-					# if it's a non-breadth course that doesn't fulfill theory, don't take it
-					# since we 
-
-					# if it's a breadth course that we don't have the digit for,
-					# take it since we are lacking digits
-
-				### ENDING NEW CODE
-
-				# non_breadth = len(courses_taken_a & non_breadth_courses.union(theory_reqs))
-		
-				# print "Non-breadth non-theory count is: {}".format(non_breadth)
-				# if theory_fulfilled and non_breadth >= 3:
-					# print "Too many non-breadth"
-					# return False
-
 				if not theory_fulfilled and course in theory_reqs:
 					# continue as normal with adding
 
@@ -139,31 +112,18 @@ class Semester(object):
 						# If only doing AC, then prune from domain in this assignment
 						# any values that are inconsistent with other semesters
 						elif heuristics['ac']:
-							assignment.ac3(assignment, [(Xk, self.semester) for Xk in self.neighbors()])
-							
-					# and self.forward_check(course):
-					# 	if self.csp.verify_technicals(assignment, self.semester, course):
-					# 		self.assigned.add(course)
-					# 		self.course_count += 1	
-					# 		return True				
+							assignment.ac3(assignment, [(Xk, self.semester) for Xk in self.neighbors()])		
 
 					# if self.csp.verify_technicals(assignment, self.semester, course):
 					self.assigned.add(course)
 					self.course_count += 1
 					return True	
 
-					# Ending code from below
 
 				# We don't want to take more than 2 non-breadth non-theory-counting courses
 				if non_breadth >= 2 and course in non_breadth_courses:
 					# print "Too many non-breadth"
 					return False
-
-				# if non_breadth >= 2 and course is in non_breadth_courses:# and not theory_fulfilled:
-				# 	return False
-				# Don't take too many courses for breadth requirement
-				# courses_taken_a = copy.deepcopy(assignment.all)
-				# courses_taken_b = copy.deepcopy(assignment.all)
 
 				# Handle special cases where student takes all of CS 50/51/61 or ES 153
 				# We start with the count of our non-breadth technical courses
@@ -217,59 +177,11 @@ class Semester(object):
 							else:
 								taken = True
 
-					# If we don't have enough penultimates, don't add one we already have
-					# print "counter_a is {}".format(counter_a)
-					# print "non_breadth is {}".format(non_breadth)
 					if (counter_a - non_breadth < 2 and course in breadth_courses and course[4] in subjects_a) or \
 					(counter_b - non_breadth < 2 and course in breadth_courses and course[4] in subjects_b):
 						# print "this case here 2"
 						return False
 
-					##### NEW CODE
-					# breadth_count = max(breadth_count_a, breadth_count_b)
-					# if non_breadth > 0:
-					# 	if course not in theory_reqs and breadth_count + non_breadth >= 3 and not theory_fulfilled:
-					# 		return False
-					# else:
-					# 	if course not in theory_reqs and breadth_count 
-
-					# if fulfilled theory and don't have enough breadth penultimates, don't add
-					# a non-breadth non-theory-counting technical course
-
-					# If we dont have all of our penultimates yet
-					# if (counter_a - non_breadth < 2 and counter_b - non_breadth < 2):
-					# 	return False
-
-					# If we don't yet have 2 penultimates, don't add non-breadth
-					# if (counter_a - non_breadth < 2 and counter_b - non_breadth < 2):
-					# 	return False
-
-
-					# if theory_fulfilled and \
-					# (counter_a - non_breadth < 2 and counter_b - non_breadth < 2):
-					# 	return False
-
-					# # If we have 2 non-breadth technicals and haven't fulfilled breadth,
-					# # then we only add breadth technicals that are unique penultimates
-					# if non_breadth >= 2 and \
-					# (counter_a - non_breadth < 2 and counter_b - non_breadth < 2):
-					# 	return False
-
-					# Otherwise, if we have 2 non-breadth technicals and have fulfilled breadth,
-					# then return False
-					# elif non_breadth >= 2 and (counter_a >= )
-					
-					# Never take more than 2 of one kind
-
-					# If we have 1 non-breadth or 0 non-breadth:
-					# do not take 3 of same kind 
-
-					##### END NEW CODE
-
-					# Counter_a is a sum of non-theory non-breadth tech courses and
-					# number of unique penultimate breadth digits 
-					# If already fulfilled technical and breadth, don't add more
-					# breadth = (counter_a >= 4 or counter_b >= 4)
 					if counter_a >= 4 or counter_b >= 4: #and not theory_fulfilled: 
 						# print "returning False here 1"
 						return False
@@ -376,15 +288,7 @@ class CSP_Solver(object):
 		mid_maths = {'Math 21a', 'Math 21b', 'AM 21a', 'AM 21b'}
 		adv_maths = {'Math 23a', 'Math 23b', 'Math 25a', 'Math 25b', 'Math 55a', 'Math 55b'}
 		self.all_maths = maths.union(mid_maths)
-		# self.technical_courses = set(['CS 51', 'CS 61', 'CS 96', 'CS 105', 'CS 108', \
-		# 	'CS 109A', 'CS 109B', 'CS 124', 'CS 126', 'CS 127', 'CS 134', 'CS 136', \
-		# 	'CS 141', 'CS 143', 'CS 144R', 'CS 148', 'CS 152', 'CS 161', 'CS 165', \
-		# 	'CS 171', 'CS 175', 'CS 179', 'CS 181', 'CS 182', 'CS 189', 'CS 191', \
-		# 	'Stat 110', 'Math 154', 'AM 106', 'AM 107', 'AM 120', 'AM 121', 'ES 153'])
-		# self.technical_count = 0
-		# self.non_breadth_count = 0
-		# self.non_breadth_flag = False
-		# self.technical_flag = False
+
 
 		# print "Pruning the domains based on prior math experience"
 		# Student must take Math 23ab or 25ab or 55ab in first year
@@ -678,6 +582,7 @@ class CSP_Solver(object):
 		print "Sorry! We've already computed this plan: {}".format(current_plan)
 		return True
 
+	# Fill must_takes at random restarts
 	def fill_must_take(self, assignment=None):
 		if assignment == None:
 			assignment = self
@@ -917,29 +822,9 @@ class CSP_Solver(object):
 
 		return courses	
 
-		# def insertion_sort(vals):
-
-		#    for position in range(len(list(values))):
-
-		#      current_value = vals[position]
-		#      while position > 0 and vals[position - 1] > currentvalue:
-		#          vals[position] = vals[position - 1]
-		#          position = position - 1
-
-		#      vals[position] = currentvalue
-
-		# courses = list(values)	
-
-	# If user inputs (Boolean) that they want to optimize on low workload,
-	# then we sort the domains by low workload before starting the CSP.
-	# This will require us to use lists for the domains instead of sets, which
-	# changes *a lot* of code. We could try different methods like getting
-	# courses frmo the domain and testing what their semester workload is and
-	# only branch out on the lowest semesters
 	def order_domain_values(self, values):
 		# Depending on heuristics, order vals by lowest workload, LCV, etc.
 		if self.heuristics['lcv']:
-			# print "About to call get_lcv"
 			return self.get_lcv(values)
 		
 		# Identity function	
@@ -961,32 +846,6 @@ class CSP_Solver(object):
 			if assignment.state[semester].course_count != assignment.state[semester].max_courses:
 				return [semester]
 		return None
-
-		# Choose a semester randomly
-
-		# Double branching
-		# for semester in range(self.latest_sem + 1, 9):
-		# 	if self.state[semester].course_count != self.state[semester].max_courses:
-		# 		if semester < 8:
-		# 			if self.state[semester + 1].course_count != self.state[semester + 1].max_courses:
-		# 				return [semester, semester + 1]
-		# 			return [semester]
-		# 		return [semester]
-			
-		# return None
-
-		# Triple branching
-		# for semester in range(1, 9):
-		# 	if self.state[semester].course_count < self.state[semester].max_courses:
-		# 		if semester < 8:
-		# 			if self.state[semester+1].course_count < self.state[semester+1].max_courses:
-		# 				if semester != 7:
-		# 					if self.state[semester+2].course_count < self.state[semester+2].max_courses:
-		# 						return [semester, semester + 1, semester + 2]
-		# 				else:
-		# 					return [semester, semester + 1]				
-		# 		return [semester]
-		# return None
 
 	# Returns True if A=a and B=b does not satisfy binary constraints of prereqs/inequality
 	# or if adding course a exceeds q-guide constraints
@@ -1127,134 +986,3 @@ class CSP_Solver(object):
 			return self.attempts, solutions
 
 		return self.attempts, []
-
-
-# variables = (fall, spring)
-# constraints = courses_to_prereqs, disable_future
-# classes_per_semester = 2
-# q_score = 3.0
-# workload = 35.0
-# assignments = 2.0
-# history = [(1, 'CS 50'), (1, 'AM 21a')] # [] #[(1, 'CS 50'), (1, 'Math 21a'), (2, 'CS 51'), (3, 'Stat 110'), (3, 'CS 121')] #[(1, 'CS 50'), (2, 'CS 51')] #[(1, 'Math 25a'), (2, 'Math 21a'),(3, 'CS 50'),(4,'CS 51'), (4, 'ES 52'), (5, 'CS 121'), (5, 'CS 61')] #[('CS 61', 1)][(2, 'CS 181')]  #[('CS 50', 1)] #, ('Stat 110', 3)]
-# must_take = [(7, 'CS 182')] # [] # [(7, 'CS 182')] # [(5, 'CS 182')] # lol
-# priors = {'prior_math'}
-# optimizations = 'workload'
-# heuristics = {'mrv': False, 'lcv': False, 'fc': False, 'ac': True}
-# total_solutions = 50
-
-# csp = CSP_Solver(variables, constraints, classes_per_semester, q_score, workload, assignments, history, must_take, priors, total_solutions)
-
-# # t0 = time.time()
-# # study_cards = csp.solve()
-# # t1 = time.time()
-# # print "\nNo heuristics:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t1 - t0, len(study_cards), csp.attempts)
-# t2 = time.time()
-# attempts, study_cards_with_H = csp.solve(heuristics)
-# t3 = time.time()
-# print "\nWith heuristics:\nTotal runtime = {}\nSolutions: {}\nAttempts: {}".format(t3 - t2, len(study_cards_with_H), csp.attempts)
-
-# def compare_plans(plan_a, plan_b):
-# 	# print "\n**********"
-# 	for s in range(1, 9):	
-# 		if plan_a[s].assigned != plan_b[s].assigned:
-# 			# print "Not equivalent! Compare schedules."
-# 			# print "FC:"
-# 			# for j in range(1,9):
-# 			# 	plan_a[j].print_courses()
-
-# 			# print "BT:"
-# 			# for k in range(1,9):
-# 			# # print "FC:" 
-# 			# # plan_a[s].print_courses()
-# 			# # print "BT:" 
-# 			# 	plan_b[k].print_courses()
-# 			return False
-# 	# print "Equivalent"
-# 	# print "FC:"
-# 	# for j in range(1,9):
-# 	# 	plan_a[j].print_courses()
-
-# 	# print "BT:"
-# 	# for k in range(1,9):
-# 	# 	plan_b[k].print_courses()
-
-# 	return True
-
-# # overlaps = []
-# # different = []
-# # for j in study_cards_with_H:
-# # 	shared = False
-# # 	for i in study_cards:
-# # 		shared = compare_plans(j, i)
-# # 		if shared:
-# # 			overlaps.append(j)
-# # 			break
-# # 	if not shared:
-# # 		different.append(j)
-# # 		print "Non-heuristic version never found:"
-# # 		for k in range(1,9):
-# # 			j[k].print_courses()
-
-# # for count, d in enumerate(different):
-# # 	print "\nUnfound Solution {}:".format(count + 1)
-# # 	for m in range(1,9):
-# # 		d[m].print_courses()
-
-# # Number of random solutions to generate
-# k = 10
-# # if not study_cards:
-# # 	print "No solutions found w/o heuristics. Try higher workload or lower q-score avg?"
-# # else:
-# # 	print "*** Printing random solutions for user w/o heuristics ***"
-# # 	random.shuffle(study_cards)
-# # 	solutions = random.sample(study_cards, k)
-
-# # for sol, plan in enumerate(study_cards_with_H):
-# # 	print "\nSolution {}:".format(sol + 1)
-# # 	for j in plan:
-# # 		plan[j].print_courses()
-
-# if not study_cards_with_H:
-# 	print "No solutions found w/ heuristics. Suggestions to try:"
-# 	print "- Higher workload (https://blog.collegevine.com/managing-extracurriculars-a-guide-to-strategic-quitting)"
-# 	print "- Lower q-score avg (glassdoor.com/List/Highest-Paying-Jobs-LST_KQ0,19.htm)"
-# 	print "- Lower assignment quality avg."
-# 	print "- Take prereqs before specifying \'must take\' courses early"
-# # else:
-# # 	print "*** Printing random solutions for user w/ heuristics ***"
-# # 	random.shuffle(study_cards_with_H)
-# # 	solutions_H = random.sample(study_cards_with_H, k)
-
-# # 	for sol, plan in enumerate(solutions_H):
-# # 		print "\nSolution {}:".format(sol + 1)
-# # 		for j in plan:
-# # 			plan[j].print_courses()
-
-# # for num, sol in enumerate(study_cards):
-# # 	print "Non-heuristic solution {}:".format(num)
-# # 	for r in range(1, 9):
-# # 		sol[r].print_courses()
-		
-# # print "Solutions w/o FC/MRV: {}".format(len(study_cards))
-# # print "Solutions w/  FC/MRV: {}".format(len(study_cards_with_H))
-# # print "Total time: {}".format(t3 - t2)
-# # print "Overlaps should be: {}".format(len(study_cards))
-# # print "Total overlap is: {}".format(len(overlaps))
-# # print "Difference should be: {}".format(len(study_cards_with_H) - len(study_cards))
-# # print "Difference is: {}".format(len(different))
-
-# print "*********"
-
-
-# #print csp.seen_plans
-# #print "Total seen plans: {}".format(len(csp.seen_plans))
-
-# # PLOTS
-# # Plot number of courses in domain against total solutions found
-# # Plot number of courses in domain against time for FC vs. non FC
-# # Plot number of courses in domain against time for MRV, LCV, and neither
-# # Plot number of courses in domain against time for backtracking vs. local vs. AC
-# # plt.plot([1,2,3,4], [1,4,9,16], 'ro')
-# # plt.axis([0, 6, 0, 20])
-# # plt.show()
-
