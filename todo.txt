@@ -1,23 +1,23 @@
 Remaining tasks:
 
 Priority:
-- Only generate 10 solutions total instead of generating all and choosing 10
+X Only generate 10 solutions total instead of generating all and choosing 10
 X If user inputs history, then we need to remove all variables from the available set of previous semesters so that we don't try to add courses in the past that the user did not take
 X Don't create duplicate solutions
 X LCV (started template but haven't coded anything)
 
 Small:
-- Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
+X Remove pointer in dictionary to "strict" one_of (I think) because the column is empty
 X Add to excel: after ES 50, don't take ES 52, and vice versa
 X Don't count CS 20 as a technical
 X Handle ES 153 as a 140s course when checking for breadth
 
 Important:
-- Plot runtimes of different algorithms/heuristics
-- Compare runtimes theoretically
-- Testing
-- Report
-- Use the sources we cited in project proposal, since this is part of rubric
+X Plot runtimes of different algorithms/heuristics
+X Compare runtimes theoretically
+X Testing
+X Report
+X Use the sources we cited in project proposal, since this is part of rubric
 X Decide: Stop adding courses to a schedule once it meets the requirements? Probably yes
 X For a user's input, only return ~5-10 schedules
 X Remove unnecessary columns from excel
@@ -36,9 +36,6 @@ X AC-3
 - Clean up OOP code (potentially put Semester class within CSP_Solver)
 - Honors concentration (just expand technical and breadth requirements)
 - Front end using Flask
-
-TF help:
-- Local search algorithm
 
 NOTE: Didn't do the following 2 tasks because finding the true optimal solution requires enumerating all possible solutions instead of generating a smaller amount
 - Take user input about whether to optimize on q/w/a, combination, or none
